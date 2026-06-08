@@ -18,8 +18,8 @@ echo "Setting up workspace for Member $MEMBER..."
 
 # Fetch latest
 git fetch origin
-git checkout dev
-git pull origin dev
+git checkout main
+git pull origin main
 
 case $MEMBER in
   1)
