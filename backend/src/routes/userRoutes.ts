@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import * as user from '../controllers/userController';
+import { authenticate } from '../middleware/auth.middleware';
+const r = Router();
+r.use(authenticate);
+r.get('/',      user.getUsers);
+r.get('/:id',   user.getUser);
+r.put('/:id',   user.updateUser);
+r.delete('/:id',user.deleteUser);
+export default r;

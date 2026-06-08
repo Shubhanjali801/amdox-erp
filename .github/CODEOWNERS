@@ -1,0 +1,198 @@
+# ============================================================
+# AMDOX ERP — CODEOWNERS
+# ============================================================
+# Format: <path/pattern>   @github-username
+#
+# Rules:
+# - When a PR touches a file, the assigned owner is
+#   automatically added as a required reviewer
+# - Replace @member-X with real GitHub usernames
+# - Multiple owners = ALL must approve before merge
+# ============================================================
+
+# ─── DEFAULT (fallback for unmatched files) ──────────────────
+*                               @member-1
+
+# ─── M1: DevOps & Infrastructure ────────────────────────────
+/.github/                       @member-1
+/docker-compose.yml             @member-1
+/docker-compose.prod.yml        @member-1
+/package.json                   @member-1
+/ARCHITECTURE.md                @member-1
+/README.md                      @member-1
+/backend/Dockerfile             @member-1
+/backend/scripts/               @member-1
+/backend/src/config/database.ts @member-1
+/backend/src/config/redis.ts    @member-1
+/backend/src/config/env.ts      @member-1
+/backend/src/config/cors.ts     @member-1
+/backend/src/config/logging.ts  @member-1
+/backend/src/db/                @member-1
+/backend/src/middleware/requestLogger.middleware.ts  @member-1
+/backend/src/middleware/rateLimiter.middleware.ts    @member-1
+/backend/src/utils/logger.ts    @member-1
+/docs/SETUP.md                  @member-1
+/docs/DEPLOYMENT.md             @member-1
+
+# ─── M2: Auth & Backend Core ────────────────────────────────
+/backend/src/index.ts                               @member-2
+/backend/src/config/keycloak.ts                     @member-2
+/backend/src/config/email.ts                        @member-2
+/backend/src/middleware/auth.middleware.ts           @member-2
+/backend/src/middleware/errorHandler.middleware.ts   @member-2
+/backend/src/middleware/tenantContext.middleware.ts  @member-2
+/backend/src/middleware/validation.middleware.ts     @member-2
+/backend/src/controllers/authController.ts          @member-2
+/backend/src/controllers/userController.ts          @member-2
+/backend/src/controllers/tenantController.ts        @member-2
+/backend/src/controllers/settings/                  @member-2
+/backend/src/routes/index.ts                        @member-2
+/backend/src/routes/authRoutes.ts                   @member-2
+/backend/src/routes/userRoutes.ts                   @member-2
+/backend/src/routes/tenantRoutes.ts                 @member-2
+/backend/src/routes/settings/                       @member-2
+/backend/src/services/authService.ts                @member-2
+/backend/src/services/userService.ts                @member-2
+/backend/src/services/tenantService.ts              @member-2
+/backend/src/services/settings/                     @member-2
+/backend/src/services/external/keycloakService.ts  @member-2
+/backend/src/models/User.ts                         @member-2
+/backend/src/models/Tenant.ts                       @member-2
+/backend/src/models/Role.ts                         @member-2
+/backend/src/models/Permission.ts                   @member-2
+/backend/src/repositories/baseRepository.ts         @member-2
+/backend/src/repositories/userRepository.ts         @member-2
+/backend/src/repositories/tenantRepository.ts       @member-2
+/backend/src/validators/auth.validator.ts           @member-2
+/backend/src/validators/common.validator.ts         @member-2
+/backend/src/events/eventEmitter.ts                 @member-2
+/backend/src/events/authEvents.ts                   @member-2
+/backend/src/utils/jwt.ts                           @member-2
+/backend/src/utils/encryption.ts                    @member-2
+/backend/src/utils/response.ts                      @member-2
+/backend/src/utils/errors.ts                        @member-2
+/backend/src/utils/constants.ts                     @member-2
+/backend/src/types/                                 @member-2
+/backend/tests/__mocks__/                           @member-2
+/frontend/src/components/Auth/                      @member-2
+/frontend/src/components/Settings/                  @member-2
+/frontend/src/components/common/                    @member-2
+/frontend/src/context/AuthContext.tsx               @member-2
+/frontend/src/context/TenantContext.tsx             @member-2
+/frontend/src/context/ThemeContext.tsx              @member-2
+/frontend/src/store/authSlice.ts                    @member-2
+/frontend/src/store/tenantSlice.ts                  @member-2
+/frontend/src/store/store.ts                        @member-2
+/frontend/src/hooks/useAuth.ts                      @member-2
+/frontend/src/services/authService.ts               @member-2
+/frontend/src/pages/Login.tsx                       @member-2
+/frontend/src/pages/Settings/                       @member-2
+/frontend/src/config/                               @member-2
+
+# ─── M3: Finance ────────────────────────────────────────────
+/backend/src/controllers/finance/                   @member-3
+/backend/src/routes/finance/                        @member-3
+/backend/src/services/finance/                      @member-3
+/backend/src/services/external/currencyApiService.ts @member-3
+/backend/src/models/finance/                        @member-3
+/backend/src/repositories/finance/                  @member-3
+/backend/src/validators/finance.validator.ts        @member-3
+/backend/src/events/financeEvents.ts                @member-3
+/backend/src/jobs/currencyUpdateJob.ts              @member-3
+/backend/tests/unit/services/finance/               @member-3
+/backend/tests/integration/finance/                 @member-3
+/frontend/src/components/Finance/                   @member-3
+/frontend/src/pages/Finance/                        @member-3
+/frontend/src/services/financeService.ts            @member-3
+/frontend/src/store/financeSlice.ts                 @member-3
+/frontend/src/types/finance.ts                      @member-3
+
+# ─── M4: HR, Payroll & Project Management ───────────────────
+/backend/src/controllers/hr/                        @member-4
+/backend/src/controllers/project/                   @member-4
+/backend/src/routes/hr/                             @member-4
+/backend/src/routes/project/                        @member-4
+/backend/src/services/hr/                           @member-4
+/backend/src/services/project/                      @member-4
+/backend/src/models/hr/                             @member-4
+/backend/src/models/project/                        @member-4
+/backend/src/repositories/hr/                       @member-4
+/backend/src/validators/hr.validator.ts             @member-4
+/backend/src/events/hrEvents.ts                     @member-4
+/backend/src/jobs/payrollJob.ts                     @member-4
+/backend/tests/unit/services/hr/                    @member-4
+/backend/tests/integration/hr/                      @member-4
+/backend/tests/e2e/payroll-flow.test.ts             @member-4
+/frontend/src/components/HR/                        @member-4
+/frontend/src/components/Projects/                  @member-4
+/frontend/src/pages/HR/                             @member-4
+/frontend/src/pages/Projects/                       @member-4
+/frontend/src/services/hrService.ts                 @member-4
+/frontend/src/services/projectService.ts            @member-4
+/frontend/src/store/hrSlice.ts                      @member-4
+/frontend/src/types/hr.ts                           @member-4
+/frontend/src/types/project.ts                      @member-4
+
+# ─── M5: Supply Chain, AI/ML & Notifications ────────────────
+/backend/src/controllers/supplyChain/               @member-5
+/backend/src/controllers/notification/              @member-5
+/backend/src/routes/supplyChain/                    @member-5
+/backend/src/routes/notification/                   @member-5
+/backend/src/services/supplyChain/                  @member-5
+/backend/src/services/notification/                 @member-5
+/backend/src/services/external/mlService.ts         @member-5
+/backend/src/models/supplyChain/                    @member-5
+/backend/src/models/notification/                   @member-5
+/backend/src/repositories/supplyChain/              @member-5
+/backend/src/repositories/notification/             @member-5
+/backend/src/validators/supplyChain.validator.ts    @member-5
+/backend/src/events/supplyChainEvents.ts            @member-5
+/backend/src/events/notificationEvents.ts           @member-5
+/backend/src/jobs/forecastingJob.ts                 @member-5
+/backend/src/jobs/emailJob.ts                       @member-5
+/backend/src/jobs/webhookJob.ts                     @member-5
+/backend/src/jobs/notificationJob.ts                @member-5
+/backend/tests/unit/services/supplyChain/           @member-5
+/backend/tests/integration/supplyChain/             @member-5
+/frontend/src/components/SupplyChain/               @member-5
+/frontend/src/components/Notifications/             @member-5
+/frontend/src/pages/SupplyChain/                    @member-5
+/frontend/src/services/supplyChainService.ts        @member-5
+/frontend/src/services/notificationService.ts       @member-5
+/frontend/src/services/forecastingService.ts        @member-5
+/frontend/src/store/supplyChainSlice.ts             @member-5
+/frontend/src/store/notificationSlice.ts            @member-5
+/frontend/src/context/NotificationContext.tsx       @member-5
+/frontend/src/hooks/useNotification.ts              @member-5
+/frontend/src/types/supplyChain.ts                  @member-5
+/frontend/src/types/notification.ts                 @member-5
+
+# ─── M6: Frontend, BI Dashboard & QA ────────────────────────
+/frontend/src/components/Dashboard/                 @member-6
+/frontend/src/components/Reports/                   @member-6
+/frontend/src/components/Charts/                    @member-6
+/frontend/src/pages/Dashboard.tsx                   @member-6
+/frontend/src/services/api.ts                       @member-6
+/frontend/src/services/dashboardService.ts          @member-6
+/frontend/src/services/reportService.ts             @member-6
+/frontend/src/store/dashboardSlice.ts               @member-6
+/frontend/src/hooks/useFetch.ts                     @member-6
+/frontend/src/hooks/usePagination.ts                @member-6
+/frontend/src/hooks/useDebounce.ts                  @member-6
+/frontend/src/hooks/useModal.ts                     @member-6
+/frontend/src/types/dashboard.ts                    @member-6
+/frontend/src/utils/                                @member-6
+/frontend/src/styles/                               @member-6
+/frontend/vite.config.ts                            @member-6
+/frontend/vitest.config.ts                          @member-6
+/frontend/playwright.config.ts                      @member-6
+/frontend/tests/                                    @member-6
+/backend/tests/e2e/                                 @member-6
+/backend/src/controllers/dashboard/                 @member-6
+/backend/src/routes/dashboard/                      @member-6
+/backend/src/services/dashboard/                    @member-6
+/backend/src/models/dashboard/                      @member-6
+/backend/src/services/common/                       @member-6
+/backend/src/jobs/reportGenerationJob.ts            @member-6
+/docs/TESTING.md                                    @member-6
+/docs/API_DOCUMENTATION.md                          @member-6

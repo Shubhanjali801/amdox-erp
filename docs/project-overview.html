@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Amdox ERP — Project Overview</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    :root {
+      --bg:       #0a0f1e;
+      --surface:  #111827;
+      --card:     #1a2235;
+      --border:   #1e3a5f;
+      --blue:     #3b82f6;
+      --blue-light:#60a5fa;
+      --green:    #22c55e;
+      --orange:   #f97316;
+      --purple:   #a855f7;
+      --cyan:     #06b6d4;
+      --pink:     #ec4899;
+      --yellow:   #eab308;
+      --text:     #e2e8f0;
+      --muted:    #64748b;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, #0a0f1e 0%, #0d1b3e 50%, #0a1628 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 60px 60px 50px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(59,130,246,0.1);
+      border: 1px solid rgba(59,130,246,0.3);
+      padding: 6px 16px; border-radius: 20px;
+      font-size: 12px; color: var(--blue-light);
+      font-weight: 600; letter-spacing: 1px;
+      text-transform: uppercase; margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: 48px; font-weight: 900;
+      line-height: 1.1; margin-bottom: 12px;
+      background: linear-gradient(135deg, #fff 0%, #93c5fd 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 18px; color: #94a3b8;
+      max-width: 700px; line-height: 1.7; margin-bottom: 30px;
+    }
+    .hero-meta {
+      display: flex; gap: 30px; flex-wrap: wrap;
+    }
+    .meta-item { display: flex; flex-direction: column; gap: 2px; }
+    .meta-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .meta-value { font-size: 14px; color: var(--blue-light); font-weight: 600; }
+
+    /* ── SLA STRIP ── */
+    .sla-strip {
+      background: rgba(59,130,246,0.06);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 60px;
+      display: flex; gap: 40px; flex-wrap: wrap; align-items: center;
+    }
+    .sla-item {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px;
+    }
+    .sla-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .sla-item span { color: var(--muted); }
+    .sla-item strong { color: var(--green); }
+
+    /* ── LAYOUT ── */
+    .main { padding: 50px 60px; }
+
+    /* ── SECTION TITLE ── */
+    .section-title {
+      font-size: 13px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--blue);
+      margin-bottom: 6px;
+    }
+    .section-heading {
+      font-size: 28px; font-weight: 800; margin-bottom: 30px;
+      color: #f1f5f9;
+    }
+
+    /* ── STAT CARDS ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px; margin-bottom: 60px;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px 20px;
+      position: relative; overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); border-color: var(--blue); }
+    .stat-card .icon { font-size: 28px; margin-bottom: 12px; }
+    .stat-card .number {
+      font-size: 36px; font-weight: 900;
+      background: linear-gradient(135deg, #fff, #93c5fd);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .stat-card .label { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-card::after {
+      content: ''; position: absolute;
+      top: 0; right: 0; width: 60px; height: 60px;
+      background: radial-gradient(circle, rgba(59,130,246,0.1), transparent);
+      border-radius: 0 14px 0 60px;
+    }
+
+    /* ── TEAM GRID ── */
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px; margin-bottom: 60px;
+    }
+    .member-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px;
+      border-left: 4px solid var(--blue);
+      transition: transform 0.2s;
+    }
+    .member-card:hover { transform: translateY(-2px); }
+    .member-card.m1 { border-left-color: #22c55e; }
+    .member-card.m2 { border-left-color: #818cf8; }
+    .member-card.m3 { border-left-color: #f87171; }
+    .member-card.m4 { border-left-color: #fb923c; }
+    .member-card.m5 { border-left-color: #38bdf8; }
+    .member-card.m6 { border-left-color: #c084fc; }
+
+    .member-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+    .member-avatar {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 800; flex-shrink: 0;
+    }
+    .m1 .member-avatar { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .m2 .member-avatar { background: rgba(129,140,248,0.15); color: #818cf8; }
+    .m3 .member-avatar { background: rgba(248,113,113,0.15); color: #f87171; }
+    .m4 .member-avatar { background: rgba(251,146,60,0.15); color: #fb923c; }
+    .m5 .member-avatar { background: rgba(56,189,248,0.15); color: #38bdf8; }
+    .m6 .member-avatar { background: rgba(192,132,252,0.15); color: #c084fc; }
+
+    .member-name { font-size: 16px; font-weight: 700; }
+    .member-role { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .member-branch {
+      font-size: 11px; font-family: monospace;
+      color: var(--blue-light); background: rgba(59,130,246,0.1);
+      padding: 2px 8px; border-radius: 6px; display: inline-block;
+      margin-bottom: 12px;
+    }
+    .feature-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .ftag {
+      padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+      background: rgba(59,130,246,0.1); color: var(--blue-light);
+      border: 1px solid rgba(59,130,246,0.2);
+    }
+    .file-list { font-size: 11px; color: var(--muted); font-family: monospace; line-height: 1.8; }
+
+    /* ── FEATURE TABLE ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px; margin-bottom: 60px;
+    }
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .feature-card:hover { border-color: var(--blue); }
+    .feature-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .fid {
+      font-size: 11px; font-weight: 800; padding: 4px 10px;
+      border-radius: 8px; letter-spacing: 1px;
+    }
+    .feature-title { font-size: 14px; font-weight: 700; }
+    .feature-desc { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+    .feature-ac {
+      font-size: 11px; color: #4ade80;
+      background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2);
+      padding: 6px 10px; border-radius: 6px; line-height: 1.6;
+    }
+    .owner-pill {
+      font-size: 10px; font-weight: 700; padding: 2px 8px;
+      border-radius: 10px; margin-left: auto; flex-shrink: 0;
+    }
+
+    /* ── TECH STACK ── */
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px; margin-bottom: 60px;
+    }
+    .stack-group {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px;
+    }
+    .stack-group-title {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--muted); margin-bottom: 14px;
+      padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    }
+    .stack-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 0; font-size: 13px;
+    }
+    .stack-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .stack-name { font-weight: 600; color: #e2e8f0; }
+    .stack-why { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+    /* ── DB TABLES ── */
+    .db-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px; margin-bottom: 60px;
+    }
+    .db-module {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px;
+    }
+    .db-module-title {
+      font-size: 12px; font-weight: 700; margin-bottom: 10px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .db-table {
+      font-size: 11px; font-family: monospace; color: var(--muted);
+      display: flex; justify-content: space-between;
+      padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .db-table:last-child { border: none; }
+    .db-table .tname { color: #cbd5e1; }
+    .db-table .tcount { color: var(--blue-light); font-size: 10px; }
+
+    /* ── TIMELINE ── */
+    .timeline { position: relative; margin-bottom: 60px; }
+    .timeline::before {
+      content: ''; position: absolute;
+      left: 20px; top: 0; bottom: 0;
+      width: 2px; background: var(--border);
+    }
+    .phase { position: relative; padding: 0 0 30px 60px; }
+    .phase-dot {
+      position: absolute; left: 10px; top: 4px;
+      width: 22px; height: 22px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 800; z-index: 1;
+    }
+    .phase-label {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+      font-weight: 700; margin-bottom: 4px;
+    }
+    .phase-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .phase-tasks { display: flex; flex-wrap: wrap; gap: 8px; }
+    .phase-task {
+      font-size: 11px; padding: 4px 10px; border-radius: 6px;
+      background: var(--card); border: 1px solid var(--border); color: var(--muted);
+    }
+
+    /* ── FOLDER TREE ── */
+    .tree-box {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px; margin-bottom: 60px;
+      font-family: monospace; font-size: 13px; line-height: 1.9;
+      overflow-x: auto;
+    }
+    .t-folder { color: #60a5fa; font-weight: 600; }
+    .t-file   { color: #94a3b8; }
+    .t-owner  { color: #4ade80; font-size: 11px; margin-left: 8px; }
+    .t-indent1 { margin-left: 20px; }
+    .t-indent2 { margin-left: 40px; }
+    .t-indent3 { margin-left: 60px; }
+
+    /* ── MILESTONES ── */
+    .milestone-row {
+      display: grid; grid-template-columns: 80px 1fr;
+      gap: 20px; align-items: start; margin-bottom: 16px;
+    }
+    .ms-day {
+      text-align: center; background: var(--card);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 8px;
+    }
+    .ms-day .d { font-size: 22px; font-weight: 900; color: var(--blue); }
+    .ms-day .l { font-size: 10px; color: var(--muted); }
+    .ms-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px;
+    }
+    .ms-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .ms-card p { font-size: 12px; color: var(--muted); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 30px 60px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 16px;
+    }
+    footer .left { font-size: 13px; color: var(--muted); }
+    footer .right { display: flex; gap: 12px; }
+    .footer-btn {
+      padding: 8px 18px; border-radius: 8px; font-size: 12px;
+      font-weight: 600; cursor: pointer; border: none;
+      transition: opacity 0.2s;
+    }
+    .footer-btn:hover { opacity: 0.85; }
+    .btn-blue { background: var(--blue); color: white; }
+    .btn-outline { background: transparent; color: var(--blue-light); border: 1px solid var(--border); }
+
+    /* ── DIVIDER ── */
+    .divider { height: 1px; background: var(--border); margin: 50px 0; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- ── HERO ───────────────────────────────────────── -->
+<div class="hero">
+  <div class="hero-badge">🚀 AMX-ERP-2026-04 &nbsp;·&nbsp; Version 1.0 &nbsp;·&nbsp; April 2026</div>
+  <h1>Amdox ERP Suite</h1>
+  <p>A scalable, AI-augmented, multi-tenant Enterprise Resource Planning platform delivering financial management, supply chain automation, HR & payroll, project tracking, and business intelligence — built for the modern enterprise.</p>
+  <div class="hero-meta">
+    <div class="meta-item"><div class="meta-label">Organization</div><div class="meta-value">Amdox Technologies</div></div>
+    <div class="meta-item"><div class="meta-label">Domain</div><div class="meta-value">Enterprise Software / Cloud</div></div>
+    <div class="meta-item"><div class="meta-label">Classification</div><div class="meta-value">Internal · Confidential</div></div>
+    <div class="meta-item"><div class="meta-label">Timeline</div><div class="meta-value">60 Days · 6 Members</div></div>
+    <div class="meta-item"><div class="meta-label">Stack</div><div class="meta-value">MERN + PostgreSQL + Python ML</div></div>
+  </div>
+</div>
+
+<!-- ── SLA ─────────────────────────────────────────── -->
+<div class="sla-strip">
+  <div class="sla-item"><div class="sla-dot"></div><span>Uptime:&nbsp;</span><strong>99.9% monthly</strong></div>
+  <div class="sla-item"><div class="sla-dot"></div><span>API Latency:&nbsp;</span><strong>&lt; 300ms P95</strong></div>
+  <div class="sla-item"><div class="sla-dot"></div><span>Concurrent Users:&nbsp;</span><strong>≥ 2,000 per tenant</strong></div>
+  <div class="sla-item"><div class="sla-dot"></div><span>Data Durability:&nbsp;</span><strong>RPO &lt; 15min · RTO &lt; 60min</strong></div>
+  <div class="sla-item"><div class="sla-dot"></div><span>Security:&nbsp;</span><strong>OWASP Top 10 · SOC 2 · GDPR</strong></div>
+  <div class="sla-item"><div class="sla-dot"></div><span>AI Accuracy:&nbsp;</span><strong>MAPE &lt; 12%</strong></div>
+</div>
+
+<div class="main">
+
+  <!-- ── STATS ─────────────────────────────────────── -->
+  <div class="stats-grid">
+    <div class="stat-card"><div class="icon">📦</div><div class="number">12</div><div class="label">Features (F-01 to F-12)</div></div>
+    <div class="stat-card"><div class="icon">🗄️</div><div class="number">37</div><div class="label">Database Tables</div></div>
+    <div class="stat-card"><div class="icon">🔢</div><div class="number">28</div><div class="label">Enum Types</div></div>
+    <div class="stat-card"><div class="icon">👥</div><div class="number">6</div><div class="label">Team Members</div></div>
+    <div class="stat-card"><div class="icon">📅</div><div class="number">60</div><div class="label">Days Timeline</div></div>
+    <div class="stat-card"><div class="icon">🌿</div><div class="number">8</div><div class="label">Git Branches</div></div>
+    <div class="stat-card"><div class="icon">🔐</div><div class="number">33</div><div class="label">Permissions</div></div>
+    <div class="stat-card"><div class="icon">🧠</div><div class="number">2</div><div class="label">AI/ML Models</div></div>
+  </div>
+
+  <!-- ── FEATURES ──────────────────────────────────── -->
+  <div class="section-title">Core Features</div>
+  <div class="section-heading">F-01 to F-12 — Full Feature Map</div>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-top">
+        <span class="fid" style="background:rgba(129,140,248,0.15);color:#818cf8;">F-01</span>
+        <span class="feature-title">Multi-Tenant Auth (SSO)</span>
+        <span class="owner-pill" style="background:rgba(129,140,248,0.15);color:#818cf8;">M2</span>
+      </div>
+      <div class="feature-desc">SAML 2.0 / OIDC with Azure AD & Google Workspace. MFA enforcement per tenant. RBAC with 33 granular permissions.</div>
+      <div class="feature-ac">✓ Login &lt; 2s · MFA enforced · Tenant isolation verified</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-top">
+        <span class="fid" style="background:rgba(248,113,113,0.15);color:#f87171;">F-02</span>
+        <span class="feature-title">Financial Ledger (GL)</span>
+        <span class="owner-pill" style="background:rgba(248,113,113,0.15);color:#f87171;">M3</span>
+      </div>
+      <div class="feature-desc">Double-entry accounting engine. Multi-currency with daily FX auto-fetch from ECB. Period close with role-based override.</div>
+      <div class="feature-ac">✓ Zero unbalanced entries · FX auto-fetched · Period lock enforced</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-top">
+        <span class="fid" style="background:rgba(248,113,113,0.15);color:#f87171;">F-03</span>
+        <span class="feature-title">AP / AR Automation</span>
+        <span class="owner-pill" style="background:rgba(248,113,113,0.15);color:#f87171;">M3</span>
+      </div>
+      <div class="feature-desc">Invoice OCR with 95%+ accuracy. 3-way PO/GR/Invoice matching. Automated payment runs & aging reports.</div>
+      <div class="feature-ac">✓ OCR ≥ 95% · Auto-match in &lt; 30s · Aging reports live</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-top">
+        <span class="fid" style="background:rgba(251,146,60,0.15);color:#fb923c;">F-04</span>
+        <span class="feature-title">HR & Payroll Engine</span>
+        <span class="owner-pill" style="background:rgba(251,146,60,0.15);color:#fb923c;">M4</span>
+      </div>
+      <div class="feature-desc">Employee lifecycle management. Leave & attendance tracking. Gross-to-net payroll with configurable tax slabs. Payslip PDF generation.</div>
+      <div class="feature-ac">✓ Payroll &lt; 5min for 10k employees · Full audit trail</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-top">
+        <span class="fid" style="background:rgba(56,189,248,0.15);color:#38bdf8;">F-05</span>
+        <span class="feature-title">Supply Chain & Inventory</span>
+        <span class="owner-pill" style="background:rgba(56,189,248,0.15);color:#38bdf8;">M5</span>
+      </div>
+      <div class="feature-desc">PO lifecycle from requisition to receipt. Vendor portal API. Real-time stock levels with FIFO costing. Automated reorder triggers.</div>
+      <div class="feature-ac">✓ Reorder at configurable threshold · Vendor email/webhook alert</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-top">
+        <span class="fid" style="background:rgba(56,189,248,0.15);color:#38bdf8;">F-06</span>
+        <span class="feature-title">AI Demand Forecasting</span>
+        <span class="owner-pill" style="background:rgba(56,189,248,0.15);color:#38bdf8;">M5</span>
+      </div>
+      <div class="feature-desc">Python FastAPI ML microservice. Prophet model for time-series SKU forecasting. LSTM (PyTorch) for high-volume SKUs. Weekly retraining via BullMQ.</div>
+      <div class="feature-ac">✓ MAPE &lt; 12% on 90-day horizon · Retrain weekly</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-top">
+        <span class="fid" style="background:rgba(251,146,60,0.15);color:#fb923c;">F-07</span>
+        <span class="feature-title">Project Management</span>
+        <span class="owner-pill" style="background:rgba(251,146,60,0.15);color:#fb923c;">M4</span>
+      </div>
+      <div class="feature-desc">Gantt chart with drag-to-reschedule. Resource allocation & utilisation heatmap. Budget tracking with variance alerts at 10% overrun.</div>
+      <div class="feature-ac">✓ Overrun alert at 10% · Gantt renders &lt; 1s</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-top">
+        <span class="fid" style="background:rgba(192,132,252,0.15);color:#c084fc;">F-08</span>
+        <span class="feature-title">Business Intelligence</span>
+        <span class="owner-pill" style="background:rgba(192,132,252,0.15);color:#c084fc;">M6</span>
+      </div>
+      <div class="feature-desc">Drag-and-drop dashboard builder. Recharts + ECharts widgets (bar, line, pie, heatmap). Drill-down analytics. Scheduled reports via email.</div>
+      <div class="feature-ac">✓ Dashboard saved &lt; 500ms · Exports PDF/Excel</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-top">
+        <span class="fid" style="background:rgba(129,140,248,0.15);color:#818cf8;">F-09</span>
+        <span class="feature-title">Audit & Compliance Log</span>
+        <span class="owner-pill" style="background:rgba(129,140,248,0.15);color:#818cf8;">M2</span>
+      </div>
+      <div class="feature-desc">Immutable audit trail with SHA-256 hash chaining (tamper detection). GDPR data subject request API. All mutations logged with before/after states.</div>
+      <div class="feature-ac">✓ Tamper-evident · DSR fulfilled &lt; 72h</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-top">
+        <span class="fid" style="background:rgba(56,189,248,0.15);color:#38bdf8;">F-10</span>
+        <span class="feature-title">Notification Engine</span>
+        <span class="owner-pill" style="background:rgba(56,189,248,0.15);color:#38bdf8;">M5</span>
+      </div>
+      <div class="feature-desc">Multi-channel: in-app (SSE), email (AWS SES), SMS (Twilio), webhook (HMAC). Per-user channel preferences. BullMQ retry with dead-letter queue.</div>
+      <div class="feature-ac">✓ Delivery confirmed · 3x retry on failure · Channel preference</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-top">
+        <span class="fid" style="background:rgba(129,140,248,0.15);color:#818cf8;">F-11</span>
+        <span class="feature-title">API Gateway & Webhooks</span>
+        <span class="owner-pill" style="background:rgba(129,140,248,0.15);color:#818cf8;">M1+M2</span>
+      </div>
+      <div class="feature-desc">REST (OpenAPI 3.1) + GraphQL (Apollo v4) gateway. Outbound webhook subscriptions with HMAC signing. All endpoints versioned at /api/v1.</div>
+      <div class="feature-ac">✓ OpenAPI 3.1 spec published · All endpoints versioned</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-top">
+        <span class="fid" style="background:rgba(192,132,252,0.15);color:#c084fc;">F-12</span>
+        <span class="feature-title">Offline / PWA Support</span>
+        <span class="owner-pill" style="background:rgba(192,132,252,0.15);color:#c084fc;">M6</span>
+      </div>
+      <div class="feature-desc">Service worker caching for critical read views (dashboard, inventory, leave). Background sync queue on reconnect. Installable PWA manifest.</div>
+      <div class="feature-ac">✓ Core views offline · Sync without data loss on reconnect</div>
+    </div>
+  </div>
+
+  <!-- ── TEAM ───────────────────────────────────────── -->
+  <div class="divider"></div>
+  <div class="section-title">Team</div>
+  <div class="section-heading">6-Member Division of Work</div>
+
+  <div class="team-grid">
+    <div class="member-card m1">
+      <div class="member-header">
+        <div class="member-avatar">M1</div>
+        <div><div class="member-name">Member 1</div><div class="member-role">DevOps & Infrastructure Lead</div></div>
+      </div>
+      <div class="member-branch">infra/m1-devops-setup</div>
+      <div class="feature-tags">
+        <span class="ftag" style="color:#22c55e;border-color:rgba(34,197,94,0.3)">F-11 partial</span>
+        <span class="ftag" style="color:#22c55e;border-color:rgba(34,197,94,0.3)">F-12 partial</span>
+        <span class="ftag" style="color:#22c55e;border-color:rgba(34,197,94,0.3)">CI/CD</span>
+      </div>
+      <div class="file-list">
+        📁 .github/workflows/ (ci, build, deploy)<br>
+        📁 docker-compose.yml + prod<br>
+        📁 backend/Dockerfile<br>
+        📁 backend/src/config/<br>
+        📁 Kubernetes + Helm charts<br>
+        📁 Observability (Prometheus, Grafana)
+      </div>
+    </div>
+
+    <div class="member-card m2">
+      <div class="member-header">
+        <div class="member-avatar">M2</div>
+        <div><div class="member-name">Member 2</div><div class="member-role">Auth & Backend Core Lead</div></div>
+      </div>
+      <div class="member-branch">feature/m2-auth-core</div>
+      <div class="feature-tags">
+        <span class="ftag" style="color:#818cf8;border-color:rgba(129,140,248,0.3)">F-01 SSO</span>
+        <span class="ftag" style="color:#818cf8;border-color:rgba(129,140,248,0.3)">F-09 Audit</span>
+        <span class="ftag" style="color:#818cf8;border-color:rgba(129,140,248,0.3)">F-11 API</span>
+      </div>
+      <div class="file-list">
+        📁 controllers/authController.ts<br>
+        📁 services/authService.ts<br>
+        📁 middleware/auth + tenant + RBAC<br>
+        📁 models/ User, Tenant, Role<br>
+        📁 frontend/components/Auth/<br>
+        📁 Keycloak + JWT + MFA
+      </div>
+    </div>
+
+    <div class="member-card m3">
+      <div class="member-header">
+        <div class="member-avatar">M3</div>
+        <div><div class="member-name">Member 3</div><div class="member-role">Finance Module</div></div>
+      </div>
+      <div class="member-branch">feature/m3-finance</div>
+      <div class="feature-tags">
+        <span class="ftag" style="color:#f87171;border-color:rgba(248,113,113,0.3)">F-02 GL</span>
+        <span class="ftag" style="color:#f87171;border-color:rgba(248,113,113,0.3)">F-03 AP/AR</span>
+      </div>
+      <div class="file-list">
+        📁 services/finance/ (6 files)<br>
+        📁 models/finance/ (5 models)<br>
+        📁 controllers/finance/ (4 files)<br>
+        📁 frontend/pages/Finance/<br>
+        📁 frontend/components/Finance/<br>
+        📁 21 GL accounts seed data
+      </div>
+    </div>
+
+    <div class="member-card m4">
+      <div class="member-header">
+        <div class="member-avatar">M4</div>
+        <div><div class="member-name">Member 4</div><div class="member-role">HR, Payroll & Projects</div></div>
+      </div>
+      <div class="member-branch">feature/m4-hr-payroll</div>
+      <div class="feature-tags">
+        <span class="ftag" style="color:#fb923c;border-color:rgba(251,146,60,0.3)">F-04 HR</span>
+        <span class="ftag" style="color:#fb923c;border-color:rgba(251,146,60,0.3)">F-07 Projects</span>
+      </div>
+      <div class="file-list">
+        📁 services/hr/ (5 files)<br>
+        📁 models/hr/ (5 models)<br>
+        📁 services/project/ (4 files)<br>
+        📁 frontend/pages/HR/<br>
+        📁 frontend/components/Projects/<br>
+        📁 Payroll engine + Gantt chart
+      </div>
+    </div>
+
+    <div class="member-card m5">
+      <div class="member-header">
+        <div class="member-avatar">M5</div>
+        <div><div class="member-name">Member 5</div><div class="member-role">Supply Chain, AI/ML & Notifications</div></div>
+      </div>
+      <div class="member-branch">feature/m5-supply-chain-ml</div>
+      <div class="feature-tags">
+        <span class="ftag" style="color:#38bdf8;border-color:rgba(56,189,248,0.3)">F-05 SCM</span>
+        <span class="ftag" style="color:#38bdf8;border-color:rgba(56,189,248,0.3)">F-06 AI</span>
+        <span class="ftag" style="color:#38bdf8;border-color:rgba(56,189,248,0.3)">F-10 Notif</span>
+      </div>
+      <div class="file-list">
+        📁 services/supplyChain/ (6 files)<br>
+        📁 Python FastAPI ML service<br>
+        📁 Prophet + LSTM models<br>
+        📁 services/notification/ (5 files)<br>
+        📁 frontend/pages/SupplyChain/<br>
+        📁 BullMQ jobs (forecast, email, webhook)
+      </div>
+    </div>
+
+    <div class="member-card m6">
+      <div class="member-header">
+        <div class="member-avatar">M6</div>
+        <div><div class="member-name">Member 6</div><div class="member-role">Frontend, BI Dashboard & QA</div></div>
+      </div>
+      <div class="member-branch">feature/m6-frontend-dashboard</div>
+      <div class="feature-tags">
+        <span class="ftag" style="color:#c084fc;border-color:rgba(192,132,252,0.3)">F-08 BI</span>
+        <span class="ftag" style="color:#c084fc;border-color:rgba(192,132,252,0.3)">F-12 PWA</span>
+        <span class="ftag" style="color:#c084fc;border-color:rgba(192,132,252,0.3)">QA/Tests</span>
+      </div>
+      <div class="file-list">
+        📁 components/Dashboard/ + Charts/<br>
+        📁 Recharts + ECharts widgets<br>
+        📁 Drag-drop dashboard builder<br>
+        📁 Playwright E2E tests<br>
+        📁 k6 load tests<br>
+        📁 PWA service worker + manifest
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TECH STACK ─────────────────────────────────── -->
+  <div class="divider"></div>
+  <div class="section-title">Technology</div>
+  <div class="section-heading">Production-Grade 2026 Stack</div>
+
+  <div class="stack-grid">
+    <div class="stack-group">
+      <div class="stack-group-title">🖥️ Frontend</div>
+      <div class="stack-item"><div class="stack-dot" style="background:#61dafb"></div><div class="stack-name">React 18 + Vite</div><div class="stack-why">SPA + SSR</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#3178c6"></div><div class="stack-name">TypeScript 5.5</div><div class="stack-why">Type safety</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#06b6d4"></div><div class="stack-name">Tailwind CSS 4</div><div class="stack-why">Styling</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#8b5cf6"></div><div class="stack-name">Zustand + React Query</div><div class="stack-why">State</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#22c55e"></div><div class="stack-name">Recharts + ECharts</div><div class="stack-why">Charts</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#f97316"></div><div class="stack-name">Zod + React Hook Form</div><div class="stack-why">Forms</div></div>
+    </div>
+
+    <div class="stack-group">
+      <div class="stack-group-title">⚙️ Backend</div>
+      <div class="stack-item"><div class="stack-dot" style="background:#68a063"></div><div class="stack-name">Node.js 22 LTS</div><div class="stack-why">Runtime</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#3178c6"></div><div class="stack-name">Express + TypeScript</div><div class="stack-why">API framework</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#2496ed"></div><div class="stack-name">Prisma ORM</div><div class="stack-why">DB access</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#336791"></div><div class="stack-name">PostgreSQL 17</div><div class="stack-why">Primary DB</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#dc382d"></div><div class="stack-name">Redis 8 + BullMQ</div><div class="stack-why">Cache + Jobs</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#f6c915"></div><div class="stack-name">Keycloak 25</div><div class="stack-why">SSO/Auth</div></div>
+    </div>
+
+    <div class="stack-group">
+      <div class="stack-group-title">🧠 AI / ML</div>
+      <div class="stack-item"><div class="stack-dot" style="background:#3776ab"></div><div class="stack-name">Python 3.13 + FastAPI</div><div class="stack-why">ML service</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#ee4c2c"></div><div class="stack-name">PyTorch (LSTM)</div><div class="stack-why">Deep learning</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#3498db"></div><div class="stack-name">Prophet (Meta)</div><div class="stack-why">Time-series</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#f7931e"></div><div class="stack-name">scikit-learn</div><div class="stack-why">ML utilities</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#00c4cc"></div><div class="stack-name">MLflow</div><div class="stack-why">Model versioning</div></div>
+    </div>
+
+    <div class="stack-group">
+      <div class="stack-group-title">☁️ Infrastructure</div>
+      <div class="stack-item"><div class="stack-dot" style="background:#2496ed"></div><div class="stack-name">Docker 27 multi-stage</div><div class="stack-why">Containers</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#326ce5"></div><div class="stack-name">Kubernetes 1.31</div><div class="stack-why">Orchestration</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#ff9900"></div><div class="stack-name">AWS (EKS, S3, SES)</div><div class="stack-why">Cloud</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#7c3aed"></div><div class="stack-name">GitHub Actions + ArgoCD</div><div class="stack-why">CI/CD</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#e6522c"></div><div class="stack-name">Prometheus + Grafana</div><div class="stack-why">Monitoring</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#00bcd4"></div><div class="stack-name">Terraform 1.9</div><div class="stack-why">IaC</div></div>
+    </div>
+
+    <div class="stack-group">
+      <div class="stack-group-title">🧪 Testing</div>
+      <div class="stack-item"><div class="stack-dot" style="background:#6e9f18"></div><div class="stack-name">Vitest</div><div class="stack-why">Unit tests</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#2ead33"></div><div class="stack-name">Playwright</div><div class="stack-why">E2E tests</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#7d64ff"></div><div class="stack-name">k6</div><div class="stack-why">Load testing</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#c21325"></div><div class="stack-name">Supertest</div><div class="stack-why">API tests</div></div>
+    </div>
+
+    <div class="stack-group">
+      <div class="stack-group-title">🔒 Security</div>
+      <div class="stack-item"><div class="stack-dot" style="background:#ee0000"></div><div class="stack-name">Trivy + Snyk</div><div class="stack-why">Scanning</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#f5a623"></div><div class="stack-name">OWASP ZAP</div><div class="stack-why">DAST</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#00b4d8"></div><div class="stack-name">HashiCorp Vault</div><div class="stack-why">Secrets</div></div>
+      <div class="stack-item"><div class="stack-dot" style="background:#4caf50"></div><div class="stack-name">Helmet.js + CORS</div><div class="stack-why">HTTP security</div></div>
+    </div>
+  </div>
+
+  <!-- ── DATABASE ───────────────────────────────────── -->
+  <div class="divider"></div>
+  <div class="section-title">Database</div>
+  <div class="section-heading">37 Tables across 8 Modules</div>
+
+  <div class="db-grid">
+    <div class="db-module">
+      <div class="db-module-title" style="color:#818cf8">🔐 Auth (M2)</div>
+      <div class="db-table"><span class="tname">tenants</span><span class="tcount">2 seeded</span></div>
+      <div class="db-table"><span class="tname">users</span><span class="tcount">6 seeded</span></div>
+      <div class="db-table"><span class="tname">roles</span><span class="tcount">4 seeded</span></div>
+      <div class="db-table"><span class="tname">permissions</span><span class="tcount">33 seeded</span></div>
+      <div class="db-table"><span class="tname">user_roles</span></div>
+      <div class="db-table"><span class="tname">role_permissions</span></div>
+      <div class="db-table"><span class="tname">sessions</span></div>
+    </div>
+    <div class="db-module">
+      <div class="db-module-title" style="color:#f87171">💰 Finance (M3)</div>
+      <div class="db-table"><span class="tname">chart_of_accounts</span><span class="tcount">21 seeded</span></div>
+      <div class="db-table"><span class="tname">accounting_periods</span><span class="tcount">1 seeded</span></div>
+      <div class="db-table"><span class="tname">journal_entries</span></div>
+      <div class="db-table"><span class="tname">journal_entry_lines</span></div>
+      <div class="db-table"><span class="tname">currency_rates</span><span class="tcount">5 seeded</span></div>
+      <div class="db-table"><span class="tname">invoices</span></div>
+      <div class="db-table"><span class="tname">invoice_line_items</span></div>
+      <div class="db-table"><span class="tname">payments</span></div>
+    </div>
+    <div class="db-module">
+      <div class="db-module-title" style="color:#fb923c">👥 HR & Projects (M4)</div>
+      <div class="db-table"><span class="tname">departments</span><span class="tcount">6 seeded</span></div>
+      <div class="db-table"><span class="tname">employees</span><span class="tcount">6 seeded</span></div>
+      <div class="db-table"><span class="tname">leave_types</span><span class="tcount">6 seeded</span></div>
+      <div class="db-table"><span class="tname">leave_requests</span></div>
+      <div class="db-table"><span class="tname">attendances</span></div>
+      <div class="db-table"><span class="tname">payroll_runs</span></div>
+      <div class="db-table"><span class="tname">payslips</span></div>
+      <div class="db-table"><span class="tname">projects</span><span class="tcount">3 seeded</span></div>
+      <div class="db-table"><span class="tname">project_milestones</span></div>
+      <div class="db-table"><span class="tname">project_tasks</span></div>
+      <div class="db-table"><span class="tname">project_resources</span></div>
+    </div>
+    <div class="db-module">
+      <div class="db-module-title" style="color:#38bdf8">📦 Supply Chain (M5)</div>
+      <div class="db-table"><span class="tname">vendors</span><span class="tcount">5 seeded</span></div>
+      <div class="db-table"><span class="tname">purchase_orders</span></div>
+      <div class="db-table"><span class="tname">po_line_items</span></div>
+      <div class="db-table"><span class="tname">goods_receipts</span></div>
+      <div class="db-table"><span class="tname">goods_receipt_lines</span></div>
+      <div class="db-table"><span class="tname">inventory_items</span><span class="tcount">8 seeded</span></div>
+      <div class="db-table"><span class="tname">stock_movements</span></div>
+      <div class="db-table"><span class="tname">forecasts</span></div>
+    </div>
+    <div class="db-module">
+      <div class="db-module-title" style="color:#c084fc">📊 BI & Notifications (M5/M6)</div>
+      <div class="db-table"><span class="tname">dashboards</span><span class="tcount">1 seeded</span></div>
+      <div class="db-table"><span class="tname">widgets</span><span class="tcount">6 seeded</span></div>
+      <div class="db-table"><span class="tname">scheduled_reports</span><span class="tcount">1 seeded</span></div>
+      <div class="db-table"><span class="tname">audit_logs</span></div>
+      <div class="db-table"><span class="tname">notifications</span></div>
+      <div class="db-table"><span class="tname">notification_preferences</span></div>
+      <div class="db-table"><span class="tname">webhooks</span></div>
+      <div class="db-table"><span class="tname">webhook_deliveries</span></div>
+      <div class="db-table"><span class="tname">sync_queue</span></div>
+    </div>
+  </div>
+
+  <!-- ── TIMELINE ──────────────────────────────────── -->
+  <div class="divider"></div>
+  <div class="section-title">Timeline</div>
+  <div class="section-heading">60-Day Execution Plan</div>
+
+  <div class="timeline">
+    <div class="phase">
+      <div class="phase-dot" style="background:rgba(59,130,246,0.2);color:#3b82f6;border:2px solid #3b82f6;">1</div>
+      <div class="phase-label" style="color:#3b82f6">Day 1–10</div>
+      <div class="phase-title">Phase 1 — Foundation & Architecture</div>
+      <div class="phase-tasks">
+        <span class="phase-task">Requirements workshop</span>
+        <span class="phase-task">C4 architecture diagrams</span>
+        <span class="phase-task">Turborepo monorepo setup</span>
+        <span class="phase-task">Docker Compose local stack</span>
+        <span class="phase-task">Prisma schema + migrations</span>
+        <span class="phase-task">Keycloak SSO setup</span>
+        <span class="phase-task">JWT + RBAC auth</span>
+        <span class="phase-task">API gateway bootstrap</span>
+        <span class="phase-task">Internal Demo Day 10</span>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-dot" style="background:rgba(248,113,113,0.2);color:#f87171;border:2px solid #f87171;">2</div>
+      <div class="phase-label" style="color:#f87171">Day 11–25</div>
+      <div class="phase-title">Phase 2 — Core Business Modules</div>
+      <div class="phase-tasks">
+        <span class="phase-task">GL double-entry engine</span>
+        <span class="phase-task">AP/AR + Invoice OCR</span>
+        <span class="phase-task">HR + Employee lifecycle</span>
+        <span class="phase-task">Payroll engine (BullMQ)</span>
+        <span class="phase-task">Supply Chain PO workflow</span>
+        <span class="phase-task">Vendor portal API</span>
+        <span class="phase-task">Inventory management</span>
+        <span class="phase-task">Cross-module integration</span>
+        <span class="phase-task">Integration Demo Day 25</span>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-dot" style="background:rgba(56,189,248,0.2);color:#38bdf8;border:2px solid #38bdf8;">3</div>
+      <div class="phase-label" style="color:#38bdf8">Day 26–40</div>
+      <div class="phase-title">Phase 3 — AI/ML, BI & Advanced Features</div>
+      <div class="phase-tasks">
+        <span class="phase-task">Python FastAPI ML service</span>
+        <span class="phase-task">Prophet forecasting model</span>
+        <span class="phase-task">LSTM PyTorch model</span>
+        <span class="phase-task">BI dashboard builder</span>
+        <span class="phase-task">Recharts + ECharts widgets</span>
+        <span class="phase-task">Project Gantt chart</span>
+        <span class="phase-task">Notification engine</span>
+        <span class="phase-task">Webhook delivery system</span>
+        <span class="phase-task">Audit log + GDPR</span>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-dot" style="background:rgba(251,146,60,0.2);color:#fb923c;border:2px solid #fb923c;">4</div>
+      <div class="phase-label" style="color:#fb923c">Day 41–50</div>
+      <div class="phase-title">Phase 4 — Security, Testing & Polish</div>
+      <div class="phase-tasks">
+        <span class="phase-task">OWASP Top 10 hardening</span>
+        <span class="phase-task">Trivy + Snyk scanning</span>
+        <span class="phase-task">Playwright E2E tests</span>
+        <span class="phase-task">k6 load testing (2000 VUs)</span>
+        <span class="phase-task">Lighthouse ≥ 90</span>
+        <span class="phase-task">WCAG 2.1 AA audit</span>
+        <span class="phase-task">Cross-browser QA</span>
+        <span class="phase-task">Code freeze Day 50</span>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-dot" style="background:rgba(34,197,94,0.2);color:#22c55e;border:2px solid #22c55e;">5</div>
+      <div class="phase-label" style="color:#22c55e">Day 51–60</div>
+      <div class="phase-title">Phase 5 — Deployment & Submission</div>
+      <div class="phase-tasks">
+        <span class="phase-task">Multi-stage Dockerfiles</span>
+        <span class="phase-task">Kubernetes + Helm charts</span>
+        <span class="phase-task">GitHub Actions CI/CD</span>
+        <span class="phase-task">AWS EKS cloud deploy</span>
+        <span class="phase-task">Prometheus + Grafana</span>
+        <span class="phase-task">Demo video (5-7 min)</span>
+        <span class="phase-task">README + API docs</span>
+        <span class="phase-task">Final submission Day 60</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DELIVERABLES ───────────────────────────────── -->
+  <div class="divider"></div>
+  <div class="section-title">Submission</div>
+  <div class="section-heading">Evaluation Criteria & Deliverables</div>
+
+  <div class="stats-grid" style="margin-bottom:30px">
+    <div class="stat-card"><div class="icon">📄</div><div class="number">25%</div><div class="label">Project Report (PDF)</div></div>
+    <div class="stat-card"><div class="icon">🌐</div><div class="number">30%</div><div class="label">Live Demo URL</div></div>
+    <div class="stat-card"><div class="icon">💻</div><div class="number">20%</div><div class="label">GitHub Repository</div></div>
+    <div class="stat-card"><div class="icon">📖</div><div class="number">15%</div><div class="label">README.md</div></div>
+    <div class="stat-card"><div class="icon">🎬</div><div class="number">10%</div><div class="label">Demo Video (5-7 min)</div></div>
+  </div>
+
+  <!-- ── QUICK START ────────────────────────────────── -->
+  <div class="divider"></div>
+  <div class="section-title">Quick Start</div>
+  <div class="section-heading">Get Running in 5 Commands</div>
+  <div class="tree-box">
+    <span style="color:#4ade80"># 1. Clone the repo</span><br>
+    git clone &lt;repo-url&gt; &amp;&amp; cd amdox-erp<br><br>
+    <span style="color:#4ade80"># 2. Copy environment variables</span><br>
+    cp .env.example .env<br><br>
+    <span style="color:#4ade80"># 3. Start PostgreSQL, Redis, Keycloak, Elasticsearch</span><br>
+    docker-compose up -d<br><br>
+    <span style="color:#4ade80"># 4. Install, migrate & seed</span><br>
+    cd backend &amp;&amp; npm install &amp;&amp; npx prisma migrate deploy &amp;&amp; npm run seed<br><br>
+    <span style="color:#4ade80"># 5. Start dev servers</span><br>
+    npm run dev &nbsp;&nbsp;<span style="color:#64748b"># runs frontend :3000 + backend :5000 concurrently</span><br><br>
+    <span style="color:#64748b">─────────────────────────────────────────────</span><br>
+    🌐 App:      http://localhost:<span style="color:#60a5fa">3000</span><br>
+    📡 API:      http://localhost:<span style="color:#60a5fa">5000</span><br>
+    📖 Swagger:  http://localhost:<span style="color:#60a5fa">5000</span>/api-docs<br>
+    🗄️  DB UI:   http://localhost:<span style="color:#60a5fa">8081</span><br>
+    🔴 Redis UI: http://localhost:<span style="color:#60a5fa">8082</span><br>
+    🔐 Keycloak: http://localhost:<span style="color:#60a5fa">8080</span><br>
+    <span style="color:#64748b">─────────────────────────────────────────────</span><br>
+    🔑 admin@amdox.com / Admin@1234 &nbsp;&nbsp;<span style="color:#64748b">(Super Admin)</span><br>
+    🔑 finance@amdox.com / Finance@1234 &nbsp;<span style="color:#64748b">(Finance Manager)</span><br>
+    🔑 hr@amdox.com / HR@1234 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#64748b">(HR Manager)</span>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ── FOOTER ─────────────────────────────────────── -->
+<footer>
+  <div class="left">
+    <strong style="color:#e2e8f0">Amdox Technologies</strong> &nbsp;·&nbsp;
+    Engineering Division &nbsp;·&nbsp; April 2026 &nbsp;·&nbsp;
+    <span>AMX-ERP-2026-06 | Confidential</span>
+  </div>
+  <div class="right">
+    <button class="footer-btn btn-outline" onclick="window.open('er-diagram.html')">🗄️ View ER Diagram</button>
+    <button class="footer-btn btn-blue" onclick="window.print()">🖨️ Print / Export PDF</button>
+  </div>
+</footer>
+
+</body>
+</html>

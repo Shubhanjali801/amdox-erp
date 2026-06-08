@@ -1,0 +1,11 @@
+import { Router } from 'express';
+import * as ctrl from '../../controllers/supplyChain/poController';
+import { authenticate } from '../../middleware/auth.middleware';
+const r = Router();
+r.use(authenticate);
+r.get('/',     ctrl.getAll);
+r.get('/:id',  ctrl.getById);
+r.post('/',    ctrl.create);
+r.put('/:id',  ctrl.update);
+r.delete('/:id', ctrl.remove);
+export default r;

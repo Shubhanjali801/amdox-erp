@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Amdox ERP — ER Diagram</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%);
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #2563eb;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header h1 { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+    header span { font-size: 13px; color: #93c5fd; }
+
+    .badge {
+      background: #1d4ed8;
+      color: #bfdbfe;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ── Tab Nav ── */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 20px 40px 0;
+      border-bottom: 1px solid #1e293b;
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 10px 20px;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      border-bottom: none;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .tab:hover { background: #1e293b; }
+    .tab.active {
+      background: #1e293b;
+      border-color: #334155;
+      color: #60a5fa;
+    }
+
+    /* ── Content ── */
+    .content { padding: 30px 40px; }
+    .diagram-section { display: none; }
+    .diagram-section.active { display: block; }
+
+    .section-header {
+      margin-bottom: 20px;
+    }
+    .section-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #60a5fa;
+      margin-bottom: 6px;
+    }
+    .section-header p { font-size: 13px; color: #64748b; }
+
+    .owner-tags { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .owner-tag {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .m1 { background: #1e3a2f; color: #4ade80; border: 1px solid #166534; }
+    .m2 { background: #1e1e3a; color: #818cf8; border: 1px solid #3730a3; }
+    .m3 { background: #3a1e1e; color: #f87171; border: 1px solid #991b1b; }
+    .m4 { background: #3a2e1e; color: #fb923c; border: 1px solid #9a3412; }
+    .m5 { background: #1e2e3a; color: #38bdf8; border: 1px solid #0c4a6e; }
+    .m6 { background: #2e1e3a; color: #c084fc; border: 1px solid #6b21a8; }
+
+    /* ── Mermaid Box ── */
+    .mermaid-box {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 30px;
+      overflow-x: auto;
+    }
+    .mermaid { min-width: 600px; }
+
+    /* ── Stats Grid ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-card .num { font-size: 28px; font-weight: 800; color: #60a5fa; }
+    .stat-card .lbl { font-size: 11px; color: #64748b; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #94a3b8; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { height: 6px; width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🗄️ Amdox ERP — Entity Relationship Diagram</h1>
+    <span>AMX-ERP-2026-04 &nbsp;|&nbsp; PostgreSQL 17 + Prisma ORM</span>
+  </div>
+  <span class="badge">37 Tables &nbsp;·&nbsp; 28 Enums</span>
+</header>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('overview')">📊 Overview</div>
+  <div class="tab" onclick="showTab('auth')">🔐 F-01 Auth & Tenancy</div>
+  <div class="tab" onclick="showTab('finance')">💰 F-02/03 Finance</div>
+  <div class="tab" onclick="showTab('hr')">👥 F-04 HR & Payroll</div>
+  <div class="tab" onclick="showTab('supply')">📦 F-05/06 Supply Chain & AI</div>
+  <div class="tab" onclick="showTab('project')">📋 F-07 Projects</div>
+  <div class="tab" onclick="showTab('bi')">📈 F-08/09/10 BI & Notifications</div>
+</div>
+
+<div class="content">
+
+  <!-- OVERVIEW -->
+  <div class="diagram-section active" id="tab-overview">
+    <div class="section-header">
+      <h2>Full System Overview</h2>
+      <p>All 37 tables and their cross-module relationships</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card"><div class="num">37</div><div class="lbl">Tables</div></div>
+      <div class="stat-card"><div class="num">28</div><div class="lbl">Enums</div></div>
+      <div class="stat-card"><div class="num">6</div><div class="lbl">Modules</div></div>
+      <div class="stat-card"><div class="num">12</div><div class="lbl">Features</div></div>
+      <div class="stat-card"><div class="num">F-01</div><div class="lbl">to F-12</div></div>
+    </div>
+
+    <div class="owner-tags">
+      <span class="owner-tag m1">M1 — DevOps</span>
+      <span class="owner-tag m2">M2 — Auth/Core (F-01, F-09)</span>
+      <span class="owner-tag m3">M3 — Finance (F-02, F-03)</span>
+      <span class="owner-tag m4">M4 — HR/Projects (F-04, F-07)</span>
+      <span class="owner-tag m5">M5 — Supply/AI/Notif (F-05, F-06, F-10)</span>
+      <span class="owner-tag m6">M6 — BI/QA (F-08, F-12)</span>
+    </div>
+
+    <div class="mermaid-box">
+      <div class="mermaid">
+erDiagram
+  %% ── CORE ──
+  Tenant ||--o{ User : "has"
+  Tenant ||--o{ Role : "defines"
+  User ||--o{ UserRole : "has"
+  Role ||--o{ UserRole : "assigned via"
+  Role ||--o{ RolePermission : "has"
+  Permission ||--o{ RolePermission : "granted via"
+  User ||--o{ Session : "has"
+
+  %% ── FINANCE ──
+  Tenant ||--o{ ChartOfAccount : "owns"
+  Tenant ||--o{ JournalEntry : "owns"
+  JournalEntry ||--o{ JournalEntryLine : "has"
+  ChartOfAccount ||--o{ JournalEntryLine : "debited/credited in"
+  Tenant ||--o{ Invoice : "owns"
+  Invoice ||--o{ InvoiceLineItem : "has"
+  Invoice ||--o{ Payment : "paid via"
+  Vendor ||--o{ Invoice : "receives/raises"
+  PurchaseOrder ||--o| Invoice : "matched to"
+
+  %% ── HR ──
+  Tenant ||--o{ Employee : "employs"
+  User ||--|| Employee : "is"
+  Department ||--o{ Employee : "has"
+  Employee ||--o{ LeaveRequest : "requests"
+  LeaveType ||--o{ LeaveRequest : "typed as"
+  Employee ||--o{ Attendance : "logs"
+  Employee ||--o{ Payslip : "receives"
+  PayrollRun ||--o{ Payslip : "generates"
+  Tenant ||--o{ PayrollRun : "runs"
+
+  %% ── SUPPLY CHAIN ──
+  Tenant ||--o{ Vendor : "manages"
+  Tenant ||--o{ PurchaseOrder : "creates"
+  Vendor ||--o{ PurchaseOrder : "receives"
+  PurchaseOrder ||--o{ POLineItem : "contains"
+  PurchaseOrder ||--o{ GoodsReceipt : "fulfilled by"
+  GoodsReceipt ||--o{ GoodsReceiptLine : "has"
+  Tenant ||--o{ InventoryItem : "tracks"
+  Vendor ||--o| InventoryItem : "preferred vendor"
+  InventoryItem ||--o{ StockMovement : "logs"
+  InventoryItem ||--o{ Forecast : "predicted by"
+
+  %% ── PROJECTS ──
+  Tenant ||--o{ Project : "manages"
+  Project ||--o{ ProjectMilestone : "has"
+  Project ||--o{ ProjectTask : "has"
+  Project ||--o{ ProjectResource : "allocates"
+  Employee ||--o{ ProjectResource : "assigned to"
+  ProjectMilestone ||--o{ ProjectTask : "groups"
+
+  %% ── BI & NOTIFICATIONS ──
+  Tenant ||--o{ Dashboard : "owns"
+  Dashboard ||--o{ Widget : "contains"
+  Tenant ||--o{ Notification : "sends"
+  User ||--o{ Notification : "receives"
+  Tenant ||--o{ Webhook : "registers"
+  Webhook ||--o{ WebhookDelivery : "delivers"
+  Tenant ||--o{ AuditLog : "logs"
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTH -->
+  <div class="diagram-section" id="tab-auth">
+    <div class="section-header">
+      <h2>F-01 — Multi-Tenant Auth & SSO</h2>
+      <p>SAML 2.0 / OIDC · MFA · RBAC · Session Management</p>
+    </div>
+    <div class="owner-tags">
+      <span class="owner-tag m2">M2 — Auth & Backend Core</span>
+    </div>
+    <div class="mermaid-box">
+      <div class="mermaid">
+erDiagram
+  Tenant {
+    uuid id PK
+    string name
+    string slug UK
+    string domain
+    enum plan
+    boolean isActive
+    json settings
+    datetime createdAt
+  }
+
+  User {
+    uuid id PK
+    uuid tenantId FK
+    string email
+    string passwordHash
+    string firstName
+    string lastName
+    boolean isActive
+    boolean mfaEnabled
+    string mfaSecret
+    datetime lastLoginAt
+    datetime deletedAt
+  }
+
+  Role {
+    uuid id PK
+    uuid tenantId FK
+    string name
+    boolean isSystem
+  }
+
+  Permission {
+    uuid id PK
+    string resource
+    string action
+  }
+
+  UserRole {
+    uuid id PK
+    uuid userId FK
+    uuid roleId FK
+  }
+
+  RolePermission {
+    uuid id PK
+    uuid roleId FK
+    uuid permissionId FK
+  }
+
+  Session {
+    uuid id PK
+    uuid userId FK
+    string refreshToken UK
+    string ipAddress
+    string userAgent
+    datetime expiresAt
+  }
+
+  Tenant ||--o{ User : "tenantId"
+  Tenant ||--o{ Role : "tenantId"
+  User ||--o{ UserRole : "userId"
+  Role ||--o{ UserRole : "roleId"
+  Role ||--o{ RolePermission : "roleId"
+  Permission ||--o{ RolePermission : "permissionId"
+  User ||--o{ Session : "userId"
+      </div>
+    </div>
+  </div>
+
+  <!-- FINANCE -->
+  <div class="diagram-section" id="tab-finance">
+    <div class="section-header">
+      <h2>F-02 / F-03 — Financial Ledger & AP/AR Automation</h2>
+      <p>Double-Entry GL · Multi-Currency · Invoice OCR · 3-Way Matching · Payments</p>
+    </div>
+    <div class="owner-tags">
+      <span class="owner-tag m3">M3 — Finance Module</span>
+    </div>
+    <div class="mermaid-box">
+      <div class="mermaid">
+erDiagram
+  ChartOfAccount {
+    uuid id PK
+    uuid tenantId FK
+    string code UK
+    string name
+    enum type
+    string subType
+    string currency
+    uuid parentId FK
+  }
+
+  AccountingPeriod {
+    uuid id PK
+    uuid tenantId FK
+    string name
+    datetime startDate
+    datetime endDate
+    enum status
+    datetime closedAt
+  }
+
+  JournalEntry {
+    uuid id PK
+    uuid tenantId FK
+    string entryNumber UK
+    uuid periodId FK
+    datetime date
+    string description
+    enum status
+    decimal totalDebit
+    decimal totalCredit
+    uuid createdBy FK
+  }
+
+  JournalEntryLine {
+    uuid id PK
+    uuid journalEntryId FK
+    uuid debitAccountId FK
+    uuid creditAccountId FK
+    decimal amount
+    string currency
+    int lineNumber
+  }
+
+  CurrencyRate {
+    uuid id PK
+    string fromCurrency
+    string toCurrency
+    decimal rate
+    datetime date
+    string source
+  }
+
+  Invoice {
+    uuid id PK
+    uuid tenantId FK
+    enum type
+    string invoiceNumber UK
+    uuid vendorId FK
+    uuid purchaseOrderId FK
+    decimal amount
+    decimal totalAmount
+    string currency
+    datetime dueDate
+    enum status
+    json ocrData
+    decimal ocrConfidence
+    enum matchingStatus
+    datetime paidAt
+  }
+
+  InvoiceLineItem {
+    uuid id PK
+    uuid invoiceId FK
+    string description
+    decimal quantity
+    decimal unitPrice
+    decimal totalPrice
+    decimal taxRate
+  }
+
+  Payment {
+    uuid id PK
+    uuid tenantId FK
+    uuid invoiceId FK
+    decimal amount
+    enum method
+    datetime paymentDate
+    enum status
+  }
+
+  ChartOfAccount ||--o{ ChartOfAccount : "parent-child"
+  AccountingPeriod ||--o{ JournalEntry : "periodId"
+  JournalEntry ||--o{ JournalEntryLine : "journalEntryId"
+  ChartOfAccount ||--o{ JournalEntryLine : "debitAccountId"
+  ChartOfAccount ||--o{ JournalEntryLine : "creditAccountId"
+  Invoice ||--o{ InvoiceLineItem : "invoiceId"
+  Invoice ||--o{ Payment : "invoiceId"
+      </div>
+    </div>
+  </div>
+
+  <!-- HR -->
+  <div class="diagram-section" id="tab-hr">
+    <div class="section-header">
+      <h2>F-04 — HR & Payroll Engine</h2>
+      <p>Employee Lifecycle · Leave · Attendance · Payroll · Payslips</p>
+    </div>
+    <div class="owner-tags">
+      <span class="owner-tag m4">M4 — HR, Payroll & Project Management</span>
+    </div>
+    <div class="mermaid-box">
+      <div class="mermaid">
+erDiagram
+  Department {
+    uuid id PK
+    uuid tenantId FK
+    string name
+    string code
+    uuid managerId
+    uuid parentId FK
+  }
+
+  Employee {
+    uuid id PK
+    uuid tenantId FK
+    uuid userId FK
+    string employeeCode UK
+    uuid departmentId FK
+    string designation
+    uuid managerId FK
+    enum employmentType
+    enum status
+    datetime joinDate
+    decimal baseSalary
+    string currency
+    enum payFrequency
+    json bankDetails
+    json address
+  }
+
+  LeaveType {
+    uuid id PK
+    uuid tenantId FK
+    string name
+    int daysAllowedPerYear
+    boolean carryForward
+    boolean isPaid
+  }
+
+  LeaveRequest {
+    uuid id PK
+    uuid employeeId FK
+    uuid leaveTypeId FK
+    datetime startDate
+    datetime endDate
+    decimal totalDays
+    enum status
+    uuid approvedBy
+    datetime approvedAt
+  }
+
+  Attendance {
+    uuid id PK
+    uuid employeeId FK
+    date date
+    datetime clockIn
+    datetime clockOut
+    decimal totalHours
+    decimal overtimeHours
+    enum status
+  }
+
+  PayrollRun {
+    uuid id PK
+    uuid tenantId FK
+    string period UK
+    enum status
+    int totalEmployees
+    decimal totalGross
+    decimal totalNet
+    datetime processedAt
+  }
+
+  Payslip {
+    uuid id PK
+    uuid payrollRunId FK
+    uuid employeeId FK
+    decimal basicSalary
+    json allowances
+    decimal grossSalary
+    json deductions
+    decimal totalDeductions
+    decimal netSalary
+    string pdfUrl
+  }
+
+  Department ||--o{ Department : "parent-child"
+  Department ||--o{ Employee : "departmentId"
+  Employee ||--o{ Employee : "manager-reportee"
+  Employee ||--o{ LeaveRequest : "employeeId"
+  LeaveType ||--o{ LeaveRequest : "leaveTypeId"
+  Employee ||--o{ Attendance : "employeeId"
+  PayrollRun ||--o{ Payslip : "payrollRunId"
+  Employee ||--o{ Payslip : "employeeId"
+      </div>
+    </div>
+  </div>
+
+  <!-- SUPPLY CHAIN -->
+  <div class="diagram-section" id="tab-supply">
+    <div class="section-header">
+      <h2>F-05 / F-06 — Supply Chain & AI Demand Forecasting</h2>
+      <p>PO Lifecycle · Vendor Portal · Inventory · Reorder Automation · LSTM/Prophet</p>
+    </div>
+    <div class="owner-tags">
+      <span class="owner-tag m5">M5 — Supply Chain, AI/ML & Notifications</span>
+    </div>
+    <div class="mermaid-box">
+      <div class="mermaid">
+erDiagram
+  Vendor {
+    uuid id PK
+    uuid tenantId FK
+    string name
+    string code UK
+    string email
+    int paymentTerms
+    decimal rating
+    enum status
+    json bankDetails
+  }
+
+  PurchaseOrder {
+    uuid id PK
+    uuid tenantId FK
+    string poNumber UK
+    uuid vendorId FK
+    enum status
+    decimal totalAmount
+    string currency
+    datetime expectedDelivery
+    datetime deliveredAt
+  }
+
+  POLineItem {
+    uuid id PK
+    uuid purchaseOrderId FK
+    uuid inventoryItemId FK
+    string description
+    decimal quantity
+    decimal unitPrice
+    decimal receivedQty
+  }
+
+  GoodsReceipt {
+    uuid id PK
+    uuid purchaseOrderId FK
+    datetime receiptDate
+    string receivedBy
+  }
+
+  GoodsReceiptLine {
+    uuid id PK
+    uuid goodsReceiptId FK
+    uuid inventoryItemId FK
+    decimal orderedQty
+    decimal receivedQty
+  }
+
+  InventoryItem {
+    uuid id PK
+    uuid tenantId FK
+    string sku UK
+    string name
+    string category
+    enum costingMethod
+    decimal unitCost
+    decimal quantityOnHand
+    decimal reorderPoint
+    decimal reorderQty
+    string warehouseLocation
+    uuid preferredVendorId FK
+  }
+
+  StockMovement {
+    uuid id PK
+    uuid inventoryItemId FK
+    enum type
+    decimal quantity
+    decimal unitCost
+    string reference
+    datetime createdAt
+  }
+
+  Forecast {
+    uuid id PK
+    uuid tenantId FK
+    uuid inventoryItemId FK
+    string modelType
+    string forecastPeriod
+    decimal predictedQty
+    decimal confidenceLow
+    decimal confidenceHigh
+    decimal mape
+    decimal actualQty
+  }
+
+  Vendor ||--o{ PurchaseOrder : "vendorId"
+  PurchaseOrder ||--o{ POLineItem : "purchaseOrderId"
+  PurchaseOrder ||--o{ GoodsReceipt : "purchaseOrderId"
+  GoodsReceipt ||--o{ GoodsReceiptLine : "goodsReceiptId"
+  InventoryItem ||--o{ POLineItem : "inventoryItemId"
+  InventoryItem ||--o{ StockMovement : "inventoryItemId"
+  InventoryItem ||--o{ Forecast : "inventoryItemId"
+  Vendor ||--o{ InventoryItem : "preferredVendorId"
+      </div>
+    </div>
+  </div>
+
+  <!-- PROJECTS -->
+  <div class="diagram-section" id="tab-project">
+    <div class="section-header">
+      <h2>F-07 — Project Management</h2>
+      <p>Gantt · Milestones · Tasks · Resource Allocation · Budget Tracking</p>
+    </div>
+    <div class="owner-tags">
+      <span class="owner-tag m4">M4 — HR, Payroll & Project Management</span>
+    </div>
+    <div class="mermaid-box">
+      <div class="mermaid">
+erDiagram
+  Project {
+    uuid id PK
+    uuid tenantId FK
+    string name
+    string code UK
+    enum status
+    datetime startDate
+    datetime endDate
+    decimal budget
+    decimal actualCost
+    string currency
+    uuid managerId
+    string clientName
+  }
+
+  ProjectMilestone {
+    uuid id PK
+    uuid projectId FK
+    string name
+    datetime dueDate
+    enum status
+    datetime completedAt
+  }
+
+  ProjectTask {
+    uuid id PK
+    uuid projectId FK
+    uuid milestoneId FK
+    uuid parentTaskId FK
+    string title
+    enum status
+    enum priority
+    uuid assignedTo FK
+    decimal estimatedHours
+    decimal actualHours
+    datetime startDate
+    datetime dueDate
+  }
+
+  ProjectResource {
+    uuid id PK
+    uuid projectId FK
+    uuid employeeId FK
+    string role
+    decimal allocation
+    datetime startDate
+    datetime endDate
+  }
+
+  Project ||--o{ ProjectMilestone : "projectId"
+  Project ||--o{ ProjectTask : "projectId"
+  Project ||--o{ ProjectResource : "projectId"
+  ProjectMilestone ||--o{ ProjectTask : "milestoneId"
+  ProjectTask ||--o{ ProjectTask : "parent-subtask"
+      </div>
+    </div>
+  </div>
+
+  <!-- BI + NOTIFICATIONS -->
+  <div class="diagram-section" id="tab-bi">
+    <div class="section-header">
+      <h2>F-08 / F-09 / F-10 — BI Dashboard · Audit Log · Notifications</h2>
+      <p>Drag-Drop Dashboards · Immutable Audit · In-App / Email / SMS / Webhooks</p>
+    </div>
+    <div class="owner-tags">
+      <span class="owner-tag m6">M6 — Frontend, BI & QA (F-08)</span>
+      <span class="owner-tag m2">M2 — Auth & Core (F-09)</span>
+      <span class="owner-tag m5">M5 — Notifications (F-10)</span>
+    </div>
+    <div class="mermaid-box">
+      <div class="mermaid">
+erDiagram
+  Dashboard {
+    uuid id PK
+    uuid tenantId FK
+    string name
+    uuid createdBy FK
+    boolean isPublic
+    json layout
+  }
+
+  Widget {
+    uuid id PK
+    uuid dashboardId FK
+    string title
+    enum type
+    string dataSource
+    json config
+    json position
+    int refreshInterval
+  }
+
+  ScheduledReport {
+    uuid id PK
+    uuid tenantId FK
+    string name
+    string reportType
+    enum format
+    string schedule
+    string[] recipients
+    boolean isActive
+    datetime nextRunAt
+  }
+
+  AuditLog {
+    uuid id PK
+    uuid tenantId FK
+    uuid userId FK
+    string action
+    string resource
+    string resourceId
+    json oldValues
+    json newValues
+    string ipAddress
+    string hash
+    datetime createdAt
+  }
+
+  Notification {
+    uuid id PK
+    uuid tenantId FK
+    uuid userId FK
+    string title
+    string message
+    enum type
+    enum channel
+    string event
+    boolean isRead
+    datetime deliveredAt
+    int retryCount
+  }
+
+  NotificationPreference {
+    uuid id PK
+    uuid tenantId FK
+    uuid userId FK
+    string event
+    boolean inApp
+    boolean email
+    boolean sms
+    boolean webhook
+  }
+
+  Webhook {
+    uuid id PK
+    uuid tenantId FK
+    string name
+    string url
+    string secret
+    string[] events
+    boolean isActive
+  }
+
+  WebhookDelivery {
+    uuid id PK
+    uuid webhookId FK
+    string event
+    json payload
+    int statusCode
+    int attempt
+    datetime succeededAt
+  }
+
+  SyncQueue {
+    uuid id PK
+    uuid tenantId FK
+    uuid userId FK
+    string operation
+    string resource
+    json payload
+    enum status
+    datetime syncedAt
+  }
+
+  Dashboard ||--o{ Widget : "dashboardId"
+  Webhook ||--o{ WebhookDelivery : "webhookId"
+  User ||--o{ Notification : "userId"
+  User ||--o{ NotificationPreference : "userId"
+  User ||--o{ AuditLog : "userId"
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#1e40af',
+      primaryTextColor: '#e2e8f0',
+      primaryBorderColor: '#3b82f6',
+      lineColor: '#475569',
+      secondaryColor: '#1e293b',
+      tertiaryColor: '#0f172a',
+      background: '#1e293b',
+      mainBkg: '#1e293b',
+      nodeBorder: '#3b82f6',
+      clusterBkg: '#0f172a',
+      titleColor: '#60a5fa',
+      edgeLabelBackground: '#1e293b',
+      attributeBackgroundColorOdd: '#1e293b',
+      attributeBackgroundColorEven: '#0f172a',
+    },
+    er: {
+      useMaxWidth: true,
+      layoutDirection: 'TB',
+      minEntityWidth: 100,
+      minEntityHeight: 75,
+      entityPadding: 15,
+    }
+  })
+
+  function showTab(tabName) {
+    document.querySelectorAll('.diagram-section').forEach(s => s.classList.remove('active'))
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+    document.getElementById('tab-' + tabName).classList.add('active')
+    event.target.classList.add('active')
+  }
+</script>
+</body>
+</html>

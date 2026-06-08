@@ -1,0 +1,2 @@
+/* App-level overrides — global styles in styles/global.css */
+#root { min-height: 100vh; }
