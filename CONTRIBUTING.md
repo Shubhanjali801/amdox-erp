@@ -17,10 +17,10 @@
 
 ## Git Workflow (Everyone Must Follow)
 
-### Step 1 — Always start from dev
+### Step 1 — Always start from main
 ```bash
-git checkout dev
-git pull origin dev
+git checkout main
+git pull origin main
 ```
 
 ### Step 2 — Create your feature branch
@@ -163,10 +163,10 @@ These files are shared and need coordination:
 
 Every day before starting work:
 ```bash
-git checkout dev
-git pull origin dev
+git checkout main
+git pull origin main
 git checkout your-branch
-git rebase dev              # keep your branch up to date
+git rebase main              # keep your branch up to date
 ```
 
 ---
@@ -179,5 +179,5 @@ git rebase dev              # keep your branch up to date
 | Day 25 | All Week 2 modules merge → dev. Integration test. |
 | Day 40 | AI/ML + BI + Notifications merge → dev. |
 | Day 50 | Code freeze. Only bug fixes. |
-| Day 56 | dev → main. Deploy to staging. |
+| Day 56 |  main. Deploy to staging. |
 | Day 60 | Final tag + production deploy. |
