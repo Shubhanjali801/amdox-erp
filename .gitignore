@@ -9,6 +9,7 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+/src/config/env.ts
 
 # Build outputs
 dist/
@@ -49,3 +50,9 @@ coverage/
 amdox.erp.zip
 dependencies.txt
 ream.md
+
+/ml-service
+# .github
+.vscode
+.venv
+/postman
