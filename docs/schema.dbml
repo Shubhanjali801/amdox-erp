@@ -1,0 +1,654 @@
+// ============================================================
+// Amdox ERP — Database Schema (DBML for dbdiagram.io)
+// AMX-ERP-2026-04 | PostgreSQL 17 + Prisma ORM
+// 43 Tables · 28 Enums · F-01 to F-12 Features
+// ============================================================
+
+// ─────────────────────────────────────────
+// F-01 · MULTI-TENANT AUTH & SSO  (M2)
+// ─────────────────────────────────────────
+
+Table Tenant {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  name          varchar     [not null]
+  slug          varchar     [unique, not null]
+  domain        varchar
+  plan          varchar     [not null, note: 'starter | pro | enterprise']
+  isActive      boolean     [default: true]
+  settings      jsonb
+  createdAt     timestamp   [default: `now()`]
+  updatedAt     timestamp
+}
+
+Table User {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  tenantId      uuid        [ref: > Tenant.id, not null]
+  email         varchar     [unique, not null]
+  passwordHash  varchar
+  firstName     varchar     [not null]
+  lastName      varchar     [not null]
+  avatar        varchar
+  isActive      boolean     [default: true]
+  mfaEnabled    boolean     [default: false]
+  mfaSecret     varchar
+  lastLoginAt   timestamp
+  deletedAt     timestamp
+  createdAt     timestamp   [default: `now()`]
+  updatedAt     timestamp
+}
+
+Table Role {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  tenantId      uuid        [ref: > Tenant.id, not null]
+  name          varchar     [not null, note: 'super_admin | tenant_admin | manager | viewer']
+  isSystem      boolean     [default: false]
+  createdAt     timestamp   [default: `now()`]
+}
+
+Table Permission {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  resource      varchar     [not null, note: 'finance | hr | supply | project | bi']
+  action        varchar     [not null, note: 'read | write | delete | approve | export']
+  description   varchar
+}
+
+Table UserRole {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  userId        uuid        [ref: > User.id, not null]
+  roleId        uuid        [ref: > Role.id, not null]
+  createdAt     timestamp   [default: `now()`]
+}
+
+Table RolePermission {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  roleId        uuid        [ref: > Role.id, not null]
+  permissionId  uuid        [ref: > Permission.id, not null]
+}
+
+Table Session {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  userId        uuid        [ref: > User.id, not null]
+  refreshToken  varchar     [unique, not null]
+  ipAddress     varchar
+  userAgent     varchar
+  expiresAt     timestamp   [not null]
+  createdAt     timestamp   [default: `now()`]
+}
+
+// ─────────────────────────────────────────
+// F-02 · FINANCIAL LEDGER (M3)
+// ─────────────────────────────────────────
+
+Table ChartOfAccount {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  tenantId      uuid        [ref: > Tenant.id, not null]
+  code          varchar     [unique, not null]
+  name          varchar     [not null]
+  type          varchar     [not null, note: 'asset | liability | equity | revenue | expense']
+  subType       varchar
+  currency      varchar     [default: 'INR']
+  parentId      uuid        [ref: > ChartOfAccount.id]
+  isActive      boolean     [default: true]
+  createdAt     timestamp   [default: `now()`]
+}
+
+Table AccountingPeriod {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  tenantId      uuid        [ref: > Tenant.id, not null]
+  name          varchar     [not null]
+  startDate     timestamp   [not null]
+  endDate       timestamp   [not null]
+  status        varchar     [default: 'open', note: 'open | closed | locked']
+  closedAt      timestamp
+  createdAt     timestamp   [default: `now()`]
+}
+
+Table JournalEntry {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  tenantId      uuid        [ref: > Tenant.id, not null]
+  entryNumber   varchar     [unique, not null]
+  periodId      uuid        [ref: > AccountingPeriod.id, not null]
+  date          timestamp   [not null]
+  description   varchar
+  status        varchar     [default: 'draft', note: 'draft | posted | reversed']
+  totalDebit    decimal     [not null]
+  totalCredit   decimal     [not null]
+  createdBy     uuid        [ref: > User.id]
+  createdAt     timestamp   [default: `now()`]
+}
+
+Table JournalEntryLine {
+  id                uuid    [pk, default: `gen_random_uuid()`]
+  journalEntryId    uuid    [ref: > JournalEntry.id, not null]
+  debitAccountId    uuid    [ref: > ChartOfAccount.id]
+  creditAccountId   uuid    [ref: > ChartOfAccount.id]
+  amount            decimal [not null]
+  currency          varchar [default: 'INR']
+  lineNumber        int     [not null]
+  description       varchar
+}
+
+Table CurrencyRate {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  fromCurrency  varchar     [not null]
+  toCurrency    varchar     [not null]
+  rate          decimal     [not null]
+  date          timestamp   [not null]
+  source        varchar     [note: 'ECB | manual | open_exchange_rates']
+  createdAt     timestamp   [default: `now()`]
+}
+
+// ─────────────────────────────────────────
+// F-03 · INVOICING & AP/AR (M3)
+// ─────────────────────────────────────────
+
+Table Invoice {
+  id                uuid    [pk, default: `gen_random_uuid()`]
+  tenantId          uuid    [ref: > Tenant.id, not null]
+  type              varchar [not null, note: 'sales | purchase | credit_note | debit_note']
+  invoiceNumber     varchar [unique, not null]
+  vendorId          uuid    [ref: > Vendor.id]
+  purchaseOrderId   uuid    [ref: > PurchaseOrder.id]
+  amount            decimal [not null]
+  taxAmount         decimal [default: 0]
+  totalAmount       decimal [not null]
+  currency          varchar [default: 'INR']
+  dueDate           timestamp
+  status            varchar [default: 'draft', note: 'draft | sent | approved | paid | overdue | cancelled']
+  ocrData           jsonb
+  ocrConfidence     decimal
+  matchingStatus    varchar [note: 'unmatched | partial | matched']
+  paidAt            timestamp
+  createdAt         timestamp [default: `now()`]
+  updatedAt         timestamp
+}
+
+Table InvoiceLineItem {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  invoiceId     uuid        [ref: > Invoice.id, not null]
+  description   varchar     [not null]
+  quantity      decimal     [not null]
+  unitPrice     decimal     [not null]
+  totalPrice    decimal     [not null]
+  taxRate       decimal     [default: 0]
+  hsnCode       varchar
+}
+
+Table Payment {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  tenantId      uuid        [ref: > Tenant.id, not null]
+  invoiceId     uuid        [ref: > Invoice.id, not null]
+  amount        decimal     [not null]
+  method        varchar     [not null, note: 'bank_transfer | upi | card | cheque | cash']
+  reference     varchar
+  paymentDate   timestamp   [not null]
+  status        varchar     [default: 'pending', note: 'pending | completed | failed | reversed']
+  createdAt     timestamp   [default: `now()`]
+}
+
+// ─────────────────────────────────────────
+// F-04 · HR & EMPLOYEE MANAGEMENT (M4)
+// ─────────────────────────────────────────
+
+Table Department {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  tenantId      uuid        [ref: > Tenant.id, not null]
+  name          varchar     [not null]
+  code          varchar
+  managerId     uuid        [ref: > Employee.id]
+  parentId      uuid        [ref: > Department.id]
+  costCentre    varchar
+  createdAt     timestamp   [default: `now()`]
+}
+
+Table Employee {
+  id                uuid    [pk, default: `gen_random_uuid()`]
+  tenantId          uuid    [ref: > Tenant.id, not null]
+  userId            uuid    [ref: > User.id, unique]
+  employeeCode      varchar [unique, not null]
+  departmentId      uuid    [ref: > Department.id]
+  designation       varchar
+  managerId         uuid    [ref: > Employee.id]
+  employmentType    varchar [note: 'full_time | part_time | contract | intern']
+  status            varchar [default: 'active', note: 'active | on_leave | terminated | resigned']
+  joinDate          timestamp [not null]
+  exitDate          timestamp
+  baseSalary        decimal
+  currency          varchar [default: 'INR']
+  payFrequency      varchar [note: 'monthly | biweekly | weekly']
+  bankDetails       jsonb
+  address           jsonb
+  createdAt         timestamp [default: `now()`]
+  updatedAt         timestamp
+}
+
+Table LeaveType {
+  id                uuid    [pk, default: `gen_random_uuid()`]
+  tenantId          uuid    [ref: > Tenant.id, not null]
+  name              varchar [not null, note: 'sick | casual | annual | maternity | paternity']
+  daysAllowedPerYear int    [not null]
+  carryForward      boolean [default: false]
+  isPaid            boolean [default: true]
+}
+
+Table LeaveRequest {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  employeeId    uuid        [ref: > Employee.id, not null]
+  leaveTypeId   uuid        [ref: > LeaveType.id, not null]
+  startDate     timestamp   [not null]
+  endDate       timestamp   [not null]
+  totalDays     decimal     [not null]
+  reason        varchar
+  status        varchar     [default: 'pending', note: 'pending | approved | rejected | cancelled']
+  approvedBy    uuid        [ref: > Employee.id]
+  approvedAt    timestamp
+  createdAt     timestamp   [default: `now()`]
+}
+
+Table Attendance {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  employeeId    uuid        [ref: > Employee.id, not null]
+  date          date        [not null]
+  clockIn       timestamp
+  clockOut      timestamp
+  totalHours    decimal
+  overtimeHours decimal     [default: 0]
+  status        varchar     [note: 'present | absent | half_day | on_leave | holiday']
+  createdAt     timestamp   [default: `now()`]
+}
+
+// ─────────────────────────────────────────
+// F-05 · PAYROLL ENGINE (M4)
+// ─────────────────────────────────────────
+
+Table PayrollRun {
+  id              uuid      [pk, default: `gen_random_uuid()`]
+  tenantId        uuid      [ref: > Tenant.id, not null]
+  period          varchar   [unique, not null, note: 'YYYY-MM format']
+  status          varchar   [default: 'draft', note: 'draft | processing | approved | paid | cancelled']
+  totalEmployees  int       [default: 0]
+  totalGross      decimal   [default: 0]
+  totalDeductions decimal   [default: 0]
+  totalNet        decimal   [default: 0]
+  processedAt     timestamp
+  approvedBy      uuid      [ref: > User.id]
+  createdAt       timestamp [default: `now()`]
+}
+
+Table Payslip {
+  id              uuid      [pk, default: `gen_random_uuid()`]
+  payrollRunId    uuid      [ref: > PayrollRun.id, not null]
+  employeeId      uuid      [ref: > Employee.id, not null]
+  basicSalary     decimal   [not null]
+  allowances      jsonb
+  grossSalary     decimal   [not null]
+  deductions      jsonb
+  totalDeductions decimal   [not null]
+  netSalary       decimal   [not null]
+  pdfUrl          varchar
+  createdAt       timestamp [default: `now()`]
+}
+
+// ─────────────────────────────────────────
+// F-06 · INVENTORY MANAGEMENT (M5)
+// ─────────────────────────────────────────
+
+Table InventoryItem {
+  id                uuid    [pk, default: `gen_random_uuid()`]
+  tenantId          uuid    [ref: > Tenant.id, not null]
+  sku               varchar [unique, not null]
+  name              varchar [not null]
+  category          varchar
+  unit              varchar [default: 'pcs']
+  costingMethod     varchar [note: 'fifo | lifo | weighted_avg']
+  unitCost          decimal [default: 0]
+  quantityOnHand    decimal [default: 0]
+  quantityReserved  decimal [default: 0]
+  reorderPoint      decimal [default: 0]
+  reorderQty        decimal [default: 0]
+  warehouseLocation varchar
+  preferredVendorId uuid    [ref: > Vendor.id]
+  isActive          boolean [default: true]
+  createdAt         timestamp [default: `now()`]
+  updatedAt         timestamp
+}
+
+Table StockMovement {
+  id              uuid      [pk, default: `gen_random_uuid()`]
+  inventoryItemId uuid      [ref: > InventoryItem.id, not null]
+  type            varchar   [not null, note: 'grn | issue | transfer | adjustment | return']
+  quantity        decimal   [not null]
+  unitCost        decimal
+  reference       varchar
+  notes           varchar
+  createdBy       uuid      [ref: > User.id]
+  createdAt       timestamp [default: `now()`]
+}
+
+// ─────────────────────────────────────────
+// F-07 · SUPPLY CHAIN & PROCUREMENT (M5)
+// ─────────────────────────────────────────
+
+Table Vendor {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  tenantId      uuid        [ref: > Tenant.id, not null]
+  name          varchar     [not null]
+  code          varchar     [unique, not null]
+  email         varchar
+  phone         varchar
+  gstin         varchar
+  paymentTerms  int         [default: 30, note: 'days']
+  rating        decimal
+  status        varchar     [default: 'active', note: 'active | inactive | blacklisted']
+  bankDetails   jsonb
+  address       jsonb
+  createdAt     timestamp   [default: `now()`]
+  updatedAt     timestamp
+}
+
+Table PurchaseOrder {
+  id                uuid    [pk, default: `gen_random_uuid()`]
+  tenantId          uuid    [ref: > Tenant.id, not null]
+  poNumber          varchar [unique, not null]
+  vendorId          uuid    [ref: > Vendor.id, not null]
+  status            varchar [default: 'draft', note: 'draft | sent | partial | received | cancelled']
+  totalAmount       decimal [not null]
+  currency          varchar [default: 'INR']
+  expectedDelivery  timestamp
+  deliveredAt       timestamp
+  approvedBy        uuid    [ref: > User.id]
+  createdAt         timestamp [default: `now()`]
+  updatedAt         timestamp
+}
+
+Table POLineItem {
+  id                uuid    [pk, default: `gen_random_uuid()`]
+  purchaseOrderId   uuid    [ref: > PurchaseOrder.id, not null]
+  inventoryItemId   uuid    [ref: > InventoryItem.id]
+  description       varchar [not null]
+  quantity          decimal [not null]
+  unitPrice         decimal [not null]
+  totalPrice        decimal [not null]
+  receivedQty       decimal [default: 0]
+}
+
+Table GoodsReceipt {
+  id              uuid      [pk, default: `gen_random_uuid()`]
+  purchaseOrderId uuid      [ref: > PurchaseOrder.id, not null]
+  receiptDate     timestamp [not null]
+  receivedBy      varchar
+  notes           varchar
+  createdAt       timestamp [default: `now()`]
+}
+
+Table GoodsReceiptLine {
+  id              uuid      [pk, default: `gen_random_uuid()`]
+  goodsReceiptId  uuid      [ref: > GoodsReceipt.id, not null]
+  inventoryItemId uuid      [ref: > InventoryItem.id, not null]
+  orderedQty      decimal   [not null]
+  receivedQty     decimal   [not null]
+  rejectedQty     decimal   [default: 0]
+}
+
+// ─────────────────────────────────────────
+// F-08 · AI DEMAND FORECASTING (M5)
+// ─────────────────────────────────────────
+
+Table Forecast {
+  id              uuid      [pk, default: `gen_random_uuid()`]
+  tenantId        uuid      [ref: > Tenant.id, not null]
+  inventoryItemId uuid      [ref: > InventoryItem.id, not null]
+  modelType       varchar   [not null, note: 'prophet | lstm | arima']
+  forecastPeriod  varchar   [not null, note: 'YYYY-MM format']
+  predictedQty    decimal   [not null]
+  confidenceLow   decimal
+  confidenceHigh  decimal
+  mape            decimal   [note: 'Mean Absolute Percentage Error']
+  actualQty       decimal
+  createdAt       timestamp [default: `now()`]
+}
+
+// ─────────────────────────────────────────
+// F-09 · PROJECT MANAGEMENT (M4)
+// ─────────────────────────────────────────
+
+Table Project {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  tenantId      uuid        [ref: > Tenant.id, not null]
+  name          varchar     [not null]
+  code          varchar     [unique, not null]
+  status        varchar     [default: 'planning', note: 'planning | active | on_hold | completed | cancelled']
+  startDate     timestamp
+  endDate       timestamp
+  budget        decimal
+  actualCost    decimal     [default: 0]
+  currency      varchar     [default: 'INR']
+  managerId     uuid        [ref: > Employee.id]
+  clientName    varchar
+  createdAt     timestamp   [default: `now()`]
+  updatedAt     timestamp
+}
+
+Table ProjectMilestone {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  projectId     uuid        [ref: > Project.id, not null]
+  name          varchar     [not null]
+  dueDate       timestamp
+  status        varchar     [default: 'pending', note: 'pending | in_progress | completed | delayed']
+  completedAt   timestamp
+}
+
+Table ProjectTask {
+  id              uuid      [pk, default: `gen_random_uuid()`]
+  projectId       uuid      [ref: > Project.id, not null]
+  milestoneId     uuid      [ref: > ProjectMilestone.id]
+  parentTaskId    uuid      [ref: > ProjectTask.id]
+  title           varchar   [not null]
+  status          varchar   [default: 'todo', note: 'todo | in_progress | review | done | blocked']
+  priority        varchar   [note: 'low | medium | high | critical']
+  assignedTo      uuid      [ref: > Employee.id]
+  estimatedHours  decimal
+  actualHours     decimal   [default: 0]
+  startDate       timestamp
+  dueDate         timestamp
+  createdAt       timestamp [default: `now()`]
+}
+
+Table ProjectResource {
+  id          uuid          [pk, default: `gen_random_uuid()`]
+  projectId   uuid          [ref: > Project.id, not null]
+  employeeId  uuid          [ref: > Employee.id, not null]
+  role        varchar
+  allocation  decimal       [note: 'percentage 0-100']
+  startDate   timestamp
+  endDate     timestamp
+}
+
+// ─────────────────────────────────────────
+// F-10 · NOTIFICATIONS & WEBHOOKS (M5)
+// ─────────────────────────────────────────
+
+Table Notification {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  tenantId      uuid        [ref: > Tenant.id, not null]
+  userId        uuid        [ref: > User.id, not null]
+  title         varchar     [not null]
+  message       varchar     [not null]
+  type          varchar     [note: 'info | warning | error | success']
+  channel       varchar     [note: 'in_app | email | sms | push']
+  event         varchar
+  isRead        boolean     [default: false]
+  deliveredAt   timestamp
+  retryCount    int         [default: 0]
+  createdAt     timestamp   [default: `now()`]
+}
+
+Table NotificationPreference {
+  id          uuid          [pk, default: `gen_random_uuid()`]
+  tenantId    uuid          [ref: > Tenant.id, not null]
+  userId      uuid          [ref: > User.id, not null]
+  event       varchar       [not null]
+  inApp       boolean       [default: true]
+  email       boolean       [default: true]
+  sms         boolean       [default: false]
+  webhook     boolean       [default: false]
+}
+
+Table Webhook {
+  id          uuid          [pk, default: `gen_random_uuid()`]
+  tenantId    uuid          [ref: > Tenant.id, not null]
+  name        varchar       [not null]
+  url         varchar       [not null]
+  secret      varchar
+  events      text[]
+  isActive    boolean       [default: true]
+  createdAt   timestamp     [default: `now()`]
+}
+
+Table WebhookDelivery {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  webhookId     uuid        [ref: > Webhook.id, not null]
+  event         varchar     [not null]
+  payload       jsonb       [not null]
+  statusCode    int
+  attempt       int         [default: 1]
+  error         varchar
+  succeededAt   timestamp
+  createdAt     timestamp   [default: `now()`]
+}
+
+// ─────────────────────────────────────────
+// F-11 · BI DASHBOARD (M6)
+// ─────────────────────────────────────────
+
+Table Dashboard {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  tenantId      uuid        [ref: > Tenant.id, not null]
+  name          varchar     [not null]
+  createdBy     uuid        [ref: > User.id]
+  isPublic      boolean     [default: false]
+  layout        jsonb
+  createdAt     timestamp   [default: `now()`]
+  updatedAt     timestamp
+}
+
+Table Widget {
+  id              uuid      [pk, default: `gen_random_uuid()`]
+  dashboardId     uuid      [ref: > Dashboard.id, not null]
+  title           varchar   [not null]
+  type            varchar   [not null, note: 'bar | line | pie | kpi | table | gauge']
+  dataSource      varchar   [not null]
+  config          jsonb
+  position        jsonb
+  refreshInterval int       [default: 300, note: 'seconds']
+}
+
+Table ScheduledReport {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  tenantId      uuid        [ref: > Tenant.id, not null]
+  name          varchar     [not null]
+  reportType    varchar     [not null]
+  format        varchar     [note: 'pdf | excel | csv']
+  schedule      varchar     [not null, note: 'cron expression']
+  recipients    text[]
+  isActive      boolean     [default: true]
+  nextRunAt     timestamp
+  lastRunAt     timestamp
+  createdAt     timestamp   [default: `now()`]
+}
+
+// ─────────────────────────────────────────
+// F-12 · AUDIT LOG & COMPLIANCE (M2)
+// ─────────────────────────────────────────
+
+Table AuditLog {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  tenantId      uuid        [ref: > Tenant.id, not null]
+  userId        uuid        [ref: > User.id]
+  action        varchar     [not null, note: 'create | update | delete | login | export | approve']
+  resource      varchar     [not null]
+  resourceId    varchar
+  oldValues     jsonb
+  newValues     jsonb
+  ipAddress     varchar
+  userAgent     varchar
+  hash          varchar     [note: 'SHA-256 tamper-proof hash']
+  createdAt     timestamp   [default: `now()`]
+}
+
+Table SyncQueue {
+  id            uuid        [pk, default: `gen_random_uuid()`]
+  tenantId      uuid        [ref: > Tenant.id, not null]
+  userId        uuid        [ref: > User.id]
+  operation     varchar     [not null]
+  resource      varchar     [not null]
+  payload       jsonb
+  status        varchar     [default: 'pending', note: 'pending | processing | completed | failed']
+  syncedAt      timestamp
+  createdAt     timestamp   [default: `now()`]
+}
+
+// ─────────────────────────────────────────
+// TABLE GROUPS (for visual organisation)
+// ─────────────────────────────────────────
+
+TableGroup "F-01 Auth & Tenancy (M2)" {
+  Tenant
+  User
+  Role
+  Permission
+  UserRole
+  RolePermission
+  Session
+}
+
+TableGroup "F-02/03 Finance & AP/AR (M3)" {
+  ChartOfAccount
+  AccountingPeriod
+  JournalEntry
+  JournalEntryLine
+  CurrencyRate
+  Invoice
+  InvoiceLineItem
+  Payment
+}
+
+TableGroup "F-04/05 HR & Payroll (M4)" {
+  Department
+  Employee
+  LeaveType
+  LeaveRequest
+  Attendance
+  PayrollRun
+  Payslip
+}
+
+TableGroup "F-06/07/08 Supply Chain, Inventory & AI (M5)" {
+  Vendor
+  PurchaseOrder
+  POLineItem
+  GoodsReceipt
+  GoodsReceiptLine
+  InventoryItem
+  StockMovement
+  Forecast
+}
+
+TableGroup "F-09 Project Management (M4)" {
+  Project
+  ProjectMilestone
+  ProjectTask
+  ProjectResource
+}
+
+TableGroup "F-10/11/12 Notifications, BI & Audit (M5/M6/M2)" {
+  Notification
+  NotificationPreference
+  Webhook
+  WebhookDelivery
+  Dashboard
+  Widget
+  ScheduledReport
+  AuditLog
+  SyncQueue
+}
