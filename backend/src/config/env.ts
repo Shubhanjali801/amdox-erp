@@ -9,8 +9,8 @@ export const ENV = {
   CLIENT_URL:  process.env.CLIENT_URL  || 'http://localhost:3000',
   CORS_ORIGINS:process.env.CORS_ORIGINS || 'http://localhost:3000',
 
-  // ── Database (PostgreSQL 17 + Prisma) ────────────────
-  DATABASE_URL: process.env.DATABASE_URL || 'postgresql://admin:admin123@localhost:5432/amdox_erp',
+  // ── Database (PostgreSQL 18 + Prisma) ────────────────
+  DATABASE_URL: process.env.DATABASE_URL || 'postgresql://postgres:goopostgresql866@localhost:5432/amdox_erp',
 
   // ── Redis ─────────────────────────────────────────────
   REDIS_HOST:     process.env.REDIS_HOST     || 'localhost',

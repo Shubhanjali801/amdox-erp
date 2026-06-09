@@ -1,7 +1,7 @@
 import express from 'express'
 import helmet from 'helmet'
 import cors from 'cors'
-import 'express-async-errors'
+import cookieParser from 'cookie-parser'
 
 import { env } from './config/env'
 import { corsOptions } from './config/cors'
@@ -23,6 +23,7 @@ app.use(globalRateLimiter)
 // ─── Body Parsing ────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
+app.use(cookieParser())
 
 // ─── Request Logging ─────────────────────────────────────────────────────────
 app.use(requestLogger)

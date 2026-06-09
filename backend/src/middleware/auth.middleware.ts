@@ -1,31 +1,70 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { UnauthorizedError, ForbiddenError } from '../utils/errors';
 import { ENV } from '../config/env';
 
 export interface AuthRequest extends Request {
-  user?: { id: string; tenantId: string; email: string; roles: string[]; permissions: string[] };
+  user?: {
+    userId:      string;
+    id:          string;
+    tenantId:    string;
+    email:       string;
+    roles:       string[];
+    permissions: string[];
+  };
 }
 
-export const authenticate = async (req: AuthRequest, _res: Response, next: NextFunction) => {
+// ─── Authenticate — verify JWT ────────────────────────────
+export const authenticate = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
   const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) return next(new UnauthorizedError('No token provided'));
+
+  if (!header?.startsWith('Bearer ')) {
+    return res.status(401).json({ success: false, message: 'No token provided' });
+  }
+
   try {
-    const payload = jwt.verify(header.slice(7), ENV.JWT_SECRET) as any;
-    req.user = { id: payload.sub, tenantId: payload.tenantId, email: payload.email, roles: payload.roles || [], permissions: payload.permissions || [] };
+    const token   = header.slice(7);
+    const payload = jwt.verify(token, ENV.JWT_SECRET) as any;
+
+    req.user = {
+      userId:      payload.userId,
+      id:          payload.userId,
+      tenantId:    payload.tenantId,
+      email:       payload.email,
+      roles:       payload.roles       || [],
+      permissions: payload.permissions || [],
+    };
+
     next();
-  } catch { next(new UnauthorizedError('Invalid or expired token')); }
+  } catch {
+    return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+  }
 };
 
-export const authorize = (...roles: string[]) => (req: AuthRequest, _res: Response, next: NextFunction) => {
-  if (!req.user) return next(new UnauthorizedError());
-  const hasRole = roles.some(r => req.user!.roles.includes(r));
-  if (!hasRole) return next(new ForbiddenError('Insufficient permissions'));
-  next();
-};
+// ─── Authorize — check roles ──────────────────────────────
+export const authorize = (...roles: string[]) =>
+  (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    const hasRole = roles.some(r => req.user!.roles.includes(r));
+    if (!hasRole) {
+      return res.status(403).json({ success: false, message: 'Insufficient role' });
+    }
+    next();
+  };
 
-export const requirePermission = (permission: string) => (req: AuthRequest, _res: Response, next: NextFunction) => {
-  if (!req.user) return next(new UnauthorizedError());
-  if (!req.user.permissions.includes(permission)) return next(new ForbiddenError(`Missing permission: ${permission}`));
-  next();
-};
+// ─── Require Permission ───────────────────────────────────
+export const requirePermission = (permission: string) =>
+  (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    if (!req.user.permissions.includes(permission)) {
+      return res.status(403).json({ success: false, message: `Missing permission: ${permission}` });
+    }
+    next();
+  };
