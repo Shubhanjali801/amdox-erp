@@ -77,12 +77,12 @@ export async function seedProjects(
     // ── Tasks ───────────────────────────────────────────────
     await prisma.projectTask.createMany({
       data: [
-        { projectId: project.id, milestoneId: m1.id, title: 'Requirements gathering', status: 'COMPLETED', priority: 'HIGH',   estimatedHours: 16, assignedTo: manager?.userId },
-        { projectId: project.id, milestoneId: m1.id, title: 'Architecture design',    status: 'COMPLETED', priority: 'HIGH',   estimatedHours: 24, assignedTo: manager?.userId },
-        { projectId: project.id, milestoneId: m2.id, title: 'Database schema design', status: 'COMPLETED', priority: 'HIGH',   estimatedHours: 8,  assignedTo: manager?.userId },
-        { projectId: project.id, milestoneId: m2.id, title: 'API development',        status: 'IN_PROGRESS', priority: 'HIGH', estimatedHours: 40, assignedTo: manager?.userId },
-        { projectId: project.id, milestoneId: m2.id, title: 'Frontend development',   status: 'TODO',      priority: 'MEDIUM', estimatedHours: 40, assignedTo: manager?.userId },
-        { projectId: project.id, milestoneId: m2.id, title: 'Testing & QA',           status: 'TODO',      priority: 'HIGH',   estimatedHours: 20, assignedTo: manager?.userId },
+        { projectId: project.id, milestoneId: m1.id, title: 'Requirements gathering', status: 'COMPLETED',   priority: 'HIGH',   estimatedHours: 16, assignedToUserId: manager?.userId },
+        { projectId: project.id, milestoneId: m1.id, title: 'Architecture design',    status: 'COMPLETED',   priority: 'HIGH',   estimatedHours: 24, assignedToUserId: manager?.userId },
+        { projectId: project.id, milestoneId: m2.id, title: 'Database schema design', status: 'COMPLETED',   priority: 'HIGH',   estimatedHours: 8,  assignedToUserId: manager?.userId },
+        { projectId: project.id, milestoneId: m2.id, title: 'API development',        status: 'IN_PROGRESS', priority: 'HIGH',   estimatedHours: 40, assignedToUserId: manager?.userId },
+        { projectId: project.id, milestoneId: m2.id, title: 'Frontend development',   status: 'TODO',        priority: 'MEDIUM', estimatedHours: 40, assignedToUserId: manager?.userId },
+        { projectId: project.id, milestoneId: m2.id, title: 'Testing & QA',           status: 'TODO',        priority: 'HIGH',   estimatedHours: 20, assignedToUserId: manager?.userId },
       ],
     })
 
