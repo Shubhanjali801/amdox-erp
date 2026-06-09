@@ -1,7 +1,7 @@
 -- ============================================================
 -- Amdox ERP — Initial Migration
 -- Generated: 2026-06-01
--- Database: PostgreSQL 17
+-- Database: PostgreSQL 18
 -- ============================================================
 
 -- Enable UUID extension
