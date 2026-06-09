@@ -1,10 +1,3 @@
-// ============================================================
-// AMDOX ERP — Prisma Schema
-// Database: PostgreSQL 17
-// ORM: Prisma 5
-// Project: AMX-ERP-2026-06
-// ============================================================
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,79 +7,64 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================================
-// ███████╗ ██████╗  ██╗
-// ██╔════╝██╔═══██╗ ██║
-// █████╗  ██║   ██║ ██║
-// ██╔══╝  ██║   ██║ ██║
-// ██║     ╚██████╔╝ ██║
-// ╚═╝      ╚═════╝  ╚═╝
-// F-01: MULTI-TENANT AUTH (SSO)
-// Owner: M2
-// ============================================================
-
 model Tenant {
-  id          String   @id @default(uuid())
-  name        String
-  slug        String   @unique
-  domain      String?  @unique
-  plan        PlanType @default(STARTER)
-  isActive    Boolean  @default(true)
-  logoUrl     String?
-  settings    Json     @default("{}")  // theme, timezone, currency
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  users             User[]
-  roles             Role[]
-  employees         Employee[]
-  accounts          ChartOfAccount[]
-  journalEntries    JournalEntry[]
-  invoices          Invoice[]
-  purchaseOrders    PurchaseOrder[]
-  inventoryItems    InventoryItem[]
-  vendors           Vendor[]
-  projects          Project[]
-  dashboards        Dashboard[]
-  notifications     Notification[]
+  id                String                   @id @default(uuid())
+  name              String
+  slug              String                   @unique
+  domain            String?                  @unique
+  plan              PlanType                 @default(STARTER)
+  isActive          Boolean                  @default(true)
+  logoUrl           String?
+  settings          Json                     @default("{}")
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
   auditLogs         AuditLog[]
-  webhooks          Webhook[]
-  notificationPrefs NotificationPreference[]
+  accounts          ChartOfAccount[]
+  dashboards        Dashboard[]
+  employees         Employee[]
   forecasts         Forecast[]
+  inventoryItems    InventoryItem[]
+  invoices          Invoice[]
+  journalEntries    JournalEntry[]
+  notificationPrefs NotificationPreference[]
+  notifications     Notification[]
   payrollRuns       PayrollRun[]
+  projects          Project[]
+  purchaseOrders    PurchaseOrder[]
+  roles             Role[]
+  users             User[]
+  vendors           Vendor[]
+  webhooks          Webhook[]
 
   @@map("tenants")
 }
 
 model User {
-  id           String    @id @default(uuid())
-  tenantId     String
-  email        String
-  passwordHash String
-  firstName    String
-  lastName     String
-  avatarUrl    String?
-  phone        String?
-  isActive     Boolean   @default(true)
-  mfaEnabled   Boolean   @default(false)
-  mfaSecret    String?
-  lastLoginAt  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  deletedAt    DateTime? // soft delete
-
-  // Relations
-  tenant            Tenant              @relation(fields: [tenantId], references: [id])
-  userRoles         UserRole[]
-  employee          Employee?
-  sessions          Session[]
-  createdEntries    JournalEntry[]      @relation("CreatedByUser")
-  approvedInvoices  Invoice[]           @relation("ApprovedByUser")
-  notifications     Notification[]
+  id                String                   @id @default(uuid())
+  tenantId          String
+  email             String
+  passwordHash      String
+  firstName         String
+  lastName          String
+  avatarUrl         String?
+  phone             String?
+  isActive          Boolean                  @default(true)
+  mfaEnabled        Boolean                  @default(false)
+  mfaSecret         String?
+  lastLoginAt       DateTime?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  deletedAt         DateTime?
   auditLogs         AuditLog[]
+  employee          Employee?
+  approvedInvoices  Invoice[]                @relation("ApprovedByUser")
+  createdEntries    JournalEntry[]           @relation("CreatedByUser")
   notificationPrefs NotificationPreference[]
-  assignedTasks     ProjectTask[]       @relation("AssignedToUser")
+  notifications     Notification[]
+  assignedTasks     ProjectTask[]            @relation("TaskAssignedToUser")
+  sessions          Session[]
+  userRoles         UserRole[]
+  tenant            Tenant                   @relation(fields: [tenantId], references: [id])
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -95,41 +73,37 @@ model User {
 }
 
 model Role {
-  id          String   @id @default(uuid())
+  id          String           @id @default(uuid())
   tenantId    String
-  name        String   // super_admin, tenant_admin, manager, viewer, custom
+  name        String
   description String?
-  isSystem    Boolean  @default(false) // system roles can't be deleted
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  tenant      Tenant       @relation(fields: [tenantId], references: [id])
-  userRoles   UserRole[]
+  isSystem    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   permissions RolePermission[]
+  tenant      Tenant           @relation(fields: [tenantId], references: [id])
+  userRoles   UserRole[]
 
   @@unique([tenantId, name])
   @@map("roles")
 }
 
 model UserRole {
-  id       String @id @default(uuid())
-  userId   String
-  roleId   String
-
-  user     User   @relation(fields: [userId], references: [id])
-  role     Role   @relation(fields: [roleId], references: [id])
+  id     String @id @default(uuid())
+  userId String
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   @@unique([userId, roleId])
   @@map("user_roles")
 }
 
 model Permission {
-  id          String   @id @default(uuid())
-  resource    String   // finance, hr, supply_chain, project, dashboard
-  action      String   // create, read, update, delete, approve
-  description String?
-
+  id              String           @id @default(uuid())
+  resource        String
+  action          String
+  description     String?
   rolePermissions RolePermission[]
 
   @@unique([resource, action])
@@ -137,12 +111,11 @@ model Permission {
 }
 
 model RolePermission {
-  id           String @id @default(uuid())
+  id           String     @id @default(uuid())
   roleId       String
   permissionId String
-
-  role       Role       @relation(fields: [roleId], references: [id])
-  permission Permission @relation(fields: [permissionId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  role         Role       @relation(fields: [roleId], references: [id])
 
   @@unique([roleId, permissionId])
   @@map("role_permissions")
@@ -156,45 +129,30 @@ model Session {
   userAgent    String?
   expiresAt    DateTime
   createdAt    DateTime @default(now())
-
   user         User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@map("sessions")
 }
 
-// ============================================================
-// ███████╗██╗███╗  ██╗ █████╗ ███╗  ██╗ ██████╗███████╗
-// ██╔════╝██║████╗ ██║██╔══██╗████╗ ██║██╔════╝██╔════╝
-// █████╗  ██║██╔██╗██║███████║██╔██╗██║██║     █████╗
-// ██╔══╝  ██║██║╚████║██╔══██║██║╚████║██║     ██╔══╝
-// ██║     ██║██║ ╚███║██║  ██║██║ ╚███║╚██████╗███████╗
-// ╚═╝     ╚═╝╚═╝  ╚══╝╚═╝  ╚═╝╚═╝  ╚══╝ ╚═════╝╚══════╝
-// F-02: FINANCIAL LEDGER (GL)
-// F-03: AP / AR AUTOMATION
-// Owner: M3
-// ============================================================
-
 model ChartOfAccount {
-  id           String      @id @default(uuid())
-  tenantId     String
-  code         String      // e.g. 1001, 2001, 4001
-  name         String
-  type         AccountType // ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE
-  subType      String?     // Cash, Accounts Receivable, etc.
-  currency     String      @default("USD")
-  isActive     Boolean     @default(true)
-  parentId     String?     // for hierarchical COA
-  description  String?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-
-  // Relations
-  tenant            Tenant          @relation(fields: [tenantId], references: [id])
-  parent            ChartOfAccount? @relation("AccountHierarchy", fields: [parentId], references: [id])
-  children          ChartOfAccount[] @relation("AccountHierarchy")
-  debitEntries      JournalEntryLine[] @relation("DebitAccount")
-  creditEntries     JournalEntryLine[] @relation("CreditAccount")
+  id            String             @id @default(uuid())
+  tenantId      String
+  code          String
+  name          String
+  type          AccountType
+  subType       String?
+  currency      String             @default("USD")
+  isActive      Boolean            @default(true)
+  parentId      String?
+  description   String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  parent        ChartOfAccount?    @relation("AccountHierarchy", fields: [parentId], references: [id])
+  children      ChartOfAccount[]   @relation("AccountHierarchy")
+  tenant        Tenant             @relation(fields: [tenantId], references: [id])
+  creditEntries JournalEntryLine[] @relation("CreditAccount")
+  debitEntries  JournalEntryLine[] @relation("DebitAccount")
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -202,16 +160,15 @@ model ChartOfAccount {
 }
 
 model AccountingPeriod {
-  id         String        @id @default(uuid())
-  tenantId   String
-  name       String        // e.g. "April 2026"
-  startDate  DateTime
-  endDate    DateTime
-  status     PeriodStatus  @default(OPEN)
-  closedAt   DateTime?
-  closedBy   String?
-  createdAt  DateTime      @default(now())
-
+  id             String         @id @default(uuid())
+  tenantId       String
+  name           String
+  startDate      DateTime
+  endDate        DateTime
+  status         PeriodStatus   @default(OPEN)
+  closedAt       DateTime?
+  closedBy       String?
+  createdAt      DateTime       @default(now())
   journalEntries JournalEntry[]
 
   @@index([tenantId])
@@ -219,28 +176,26 @@ model AccountingPeriod {
 }
 
 model JournalEntry {
-  id            String              @id @default(uuid())
-  tenantId      String
-  entryNumber   String              // JE-2026-0001
-  periodId      String?
-  date          DateTime
-  description   String
-  reference     String?             // invoice number, PO number
-  status        JournalEntryStatus  @default(DRAFT)
-  totalDebit    Decimal             @db.Decimal(18, 2)
-  totalCredit   Decimal             @db.Decimal(18, 2)
-  createdBy     String
-  postedAt      DateTime?
-  reversedAt    DateTime?
-  reversalId    String?             // points to reversal entry
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-
-  // Relations
-  tenant        Tenant              @relation(fields: [tenantId], references: [id])
-  period        AccountingPeriod?   @relation(fields: [periodId], references: [id])
-  creator       User                @relation("CreatedByUser", fields: [createdBy], references: [id])
-  lines         JournalEntryLine[]
+  id          String             @id @default(uuid())
+  tenantId    String
+  entryNumber String
+  periodId    String?
+  date        DateTime
+  description String
+  reference   String?
+  status      JournalEntryStatus @default(DRAFT)
+  totalDebit  Decimal            @db.Decimal(18, 2)
+  totalCredit Decimal            @db.Decimal(18, 2)
+  createdBy   String
+  postedAt    DateTime?
+  reversedAt  DateTime?
+  reversalId  String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  creator     User               @relation("CreatedByUser", fields: [createdBy], references: [id])
+  period      AccountingPeriod?  @relation(fields: [periodId], references: [id])
+  tenant      Tenant             @relation(fields: [tenantId], references: [id])
+  lines       JournalEntryLine[]
 
   @@unique([tenantId, entryNumber])
   @@index([tenantId, date])
@@ -248,30 +203,29 @@ model JournalEntry {
 }
 
 model JournalEntryLine {
-  id            String         @id @default(uuid())
-  journalEntryId String
+  id              String          @id @default(uuid())
+  journalEntryId  String
   debitAccountId  String?
   creditAccountId String?
-  amount        Decimal        @db.Decimal(18, 2)
-  currency      String         @default("USD")
-  description   String?
-  lineNumber    Int
-
-  journalEntry  JournalEntry   @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
-  debitAccount  ChartOfAccount? @relation("DebitAccount",  fields: [debitAccountId],  references: [id])
-  creditAccount ChartOfAccount? @relation("CreditAccount", fields: [creditAccountId], references: [id])
+  amount          Decimal         @db.Decimal(18, 2)
+  currency        String          @default("USD")
+  description     String?
+  lineNumber      Int
+  creditAccount   ChartOfAccount? @relation("CreditAccount", fields: [creditAccountId], references: [id])
+  debitAccount    ChartOfAccount? @relation("DebitAccount", fields: [debitAccountId], references: [id])
+  journalEntry    JournalEntry    @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
 
   @@index([journalEntryId])
   @@map("journal_entry_lines")
 }
 
 model CurrencyRate {
-  id         String   @id @default(uuid())
+  id           String   @id @default(uuid())
   fromCurrency String
   toCurrency   String
-  rate         Decimal @db.Decimal(18, 6)
+  rate         Decimal  @db.Decimal(18, 6)
   date         DateTime
-  source       String  @default("ECB") // ECB, OpenExchangeRates
+  source       String   @default("ECB")
   createdAt    DateTime @default(now())
 
   @@unique([fromCurrency, toCurrency, date])
@@ -279,42 +233,38 @@ model CurrencyRate {
   @@map("currency_rates")
 }
 
-// ─── AP / AR (F-03) ──────────────────────────────────────────
-
 model Invoice {
-  id             String        @id @default(uuid())
-  tenantId       String
-  type           InvoiceType   // AP (payable) or AR (receivable)
-  invoiceNumber  String
-  vendorId       String?       // for AP
-  customerId     String?       // for AR (linked to vendor as customer)
-  purchaseOrderId String?      // for 3-way matching
-  amount         Decimal       @db.Decimal(18, 2)
-  taxAmount      Decimal       @db.Decimal(18, 2) @default(0)
-  totalAmount    Decimal       @db.Decimal(18, 2)
-  currency       String        @default("USD")
-  issueDate      DateTime
-  dueDate        DateTime
-  status         InvoiceStatus @default(DRAFT)
-  ocrData        Json?         // raw OCR extracted fields
-  ocrConfidence  Decimal?      @db.Decimal(5, 2) // 0-100%
-  matchingStatus MatchingStatus @default(PENDING)
-  approvedBy     String?
-  approvedAt     DateTime?
-  paidAt         DateTime?
-  notes          String?
-  attachmentUrl  String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  deletedAt      DateTime?
-
-  // Relations
-  tenant         Tenant        @relation(fields: [tenantId], references: [id])
-  vendor         Vendor?       @relation(fields: [vendorId], references: [id])
-  purchaseOrder  PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
-  approver       User?         @relation("ApprovedByUser", fields: [approvedBy], references: [id])
-  lineItems      InvoiceLineItem[]
-  payments       Payment[]
+  id              String            @id @default(uuid())
+  tenantId        String
+  type            InvoiceType
+  invoiceNumber   String
+  vendorId        String?
+  customerId      String?
+  purchaseOrderId String?
+  amount          Decimal           @db.Decimal(18, 2)
+  taxAmount       Decimal           @default(0) @db.Decimal(18, 2)
+  totalAmount     Decimal           @db.Decimal(18, 2)
+  currency        String            @default("USD")
+  issueDate       DateTime
+  dueDate         DateTime
+  status          InvoiceStatus     @default(DRAFT)
+  ocrData         Json?
+  ocrConfidence   Decimal?          @db.Decimal(5, 2)
+  matchingStatus  MatchingStatus    @default(PENDING)
+  approvedBy      String?
+  approvedAt      DateTime?
+  paidAt          DateTime?
+  notes           String?
+  attachmentUrl   String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
+  lineItems       InvoiceLineItem[]
+  approver        User?             @relation("ApprovedByUser", fields: [approvedBy], references: [id])
+  purchaseOrder   PurchaseOrder?    @relation(fields: [purchaseOrderId], references: [id])
+  tenant          Tenant            @relation(fields: [tenantId], references: [id])
+  vendor          Vendor?           @relation(fields: [vendorId], references: [id])
+  payments        Payment[]
 
   @@unique([tenantId, invoiceNumber])
   @@index([tenantId, type, status])
@@ -323,107 +273,89 @@ model Invoice {
 }
 
 model InvoiceLineItem {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   invoiceId   String
   description String
-  quantity    Decimal  @db.Decimal(10, 2)
-  unitPrice   Decimal  @db.Decimal(18, 2)
-  totalPrice  Decimal  @db.Decimal(18, 2)
-  taxRate     Decimal  @db.Decimal(5, 2) @default(0)
-  accountId   String?  // GL account to post to
-
-  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  quantity    Decimal @db.Decimal(10, 2)
+  unitPrice   Decimal @db.Decimal(18, 2)
+  totalPrice  Decimal @db.Decimal(18, 2)
+  taxRate     Decimal @default(0) @db.Decimal(5, 2)
+  accountId   String?
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@map("invoice_line_items")
 }
 
 model Payment {
-  id            String        @id @default(uuid())
-  tenantId      String
-  invoiceId     String
-  amount        Decimal       @db.Decimal(18, 2)
-  currency      String        @default("USD")
-  method        PaymentMethod // BANK_TRANSFER, CHEQUE, CARD, CRYPTO
-  reference     String?       // bank reference number
-  paymentDate   DateTime
-  status        PaymentStatus @default(PENDING)
-  createdAt     DateTime      @default(now())
-
-  invoice       Invoice       @relation(fields: [invoiceId], references: [id])
+  id          String        @id @default(uuid())
+  tenantId    String
+  invoiceId   String
+  amount      Decimal       @db.Decimal(18, 2)
+  currency    String        @default("USD")
+  method      PaymentMethod
+  reference   String?
+  paymentDate DateTime
+  status      PaymentStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  invoice     Invoice       @relation(fields: [invoiceId], references: [id])
 
   @@index([invoiceId])
   @@map("payments")
 }
 
-// ============================================================
-// ██╗  ██╗██████╗
-// ██║  ██║██╔══██╗
-// ███████║██████╔╝
-// ██╔══██║██╔══██╗
-// ██║  ██║██║  ██║
-// ╚═╝  ╚═╝╚═╝  ╚═╝
-// F-04: HR & PAYROLL ENGINE
-// Owner: M4
-// ============================================================
-
 model Department {
-  id          String     @id @default(uuid())
-  tenantId    String
-  name        String
-  code        String?
-  managerId   String?
-  parentId    String?
-  createdAt   DateTime   @default(now())
-
-  employees   Employee[]
-  parent      Department?  @relation("DeptHierarchy", fields: [parentId], references: [id])
-  children    Department[] @relation("DeptHierarchy")
+  id        String       @id @default(uuid())
+  tenantId  String
+  name      String
+  code      String?
+  managerId String?
+  parentId  String?
+  createdAt DateTime     @default(now())
+  parent    Department?  @relation("DeptHierarchy", fields: [parentId], references: [id])
+  children  Department[] @relation("DeptHierarchy")
+  employees Employee[]
 
   @@unique([tenantId, name])
   @@map("departments")
 }
 
 model Employee {
-  id              String           @id @default(uuid())
-  tenantId        String
-  userId          String           @unique
-  employeeCode    String           // EMP-001
-  departmentId    String?
-  designation     String
-  managerId       String?          // self-referential for org chart
-  employmentType  EmploymentType   @default(FULL_TIME)
-  status          EmployeeStatus   @default(ACTIVE)
-  joinDate        DateTime
-  terminationDate DateTime?
-  // Salary
-  baseSalary      Decimal          @db.Decimal(18, 2)
-  currency        String           @default("USD")
-  payFrequency    PayFrequency     @default(MONTHLY)
-  // Personal
-  dateOfBirth     DateTime?
-  gender          String?
-  nationality     String?
-  taxId           String?
-  bankAccount     String?
-  bankName        String?
-  bankIfsc        String?
-  address         Json?
+  id               String            @id @default(uuid())
+  tenantId         String
+  userId           String            @unique
+  employeeCode     String
+  departmentId     String?
+  designation      String
+  managerId        String?
+  employmentType   EmploymentType    @default(FULL_TIME)
+  status           EmployeeStatus    @default(ACTIVE)
+  joinDate         DateTime
+  terminationDate  DateTime?
+  baseSalary       Decimal           @db.Decimal(18, 2)
+  currency         String            @default("USD")
+  payFrequency     PayFrequency      @default(MONTHLY)
+  dateOfBirth      DateTime?
+  gender           String?
+  nationality      String?
+  taxId            String?
+  bankAccount      String?
+  bankName         String?
+  bankIfsc         String?
+  address          Json?
   emergencyContact Json?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  deletedAt       DateTime?
-
-  // Relations
-  tenant          Tenant           @relation(fields: [tenantId], references: [id])
-  user            User             @relation(fields: [userId], references: [id])
-  department      Department?      @relation(fields: [departmentId], references: [id])
-  manager         Employee?        @relation("OrgHierarchy", fields: [managerId], references: [id])
-  reportees       Employee[]       @relation("OrgHierarchy")
-  leaveRequests   LeaveRequest[]
-  attendances     Attendance[]
-  payslips        Payslip[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+  attendances      Attendance[]
+  department       Department?       @relation(fields: [departmentId], references: [id])
+  manager          Employee?         @relation("OrgHierarchy", fields: [managerId], references: [id])
+  reportees        Employee[]        @relation("OrgHierarchy")
+  tenant           Tenant            @relation(fields: [tenantId], references: [id])
+  user             User              @relation(fields: [userId], references: [id])
+  leaveRequests    LeaveRequest[]
+  payslips         Payslip[]
   projectResources ProjectResource[]
-  taskAssignments ProjectTask[]    @relation("AssignedToUser")
+  taskAssignments  ProjectTask[]     @relation("TaskAssignedToEmployee")
 
   @@unique([tenantId, employeeCode])
   @@index([tenantId])
@@ -431,56 +363,53 @@ model Employee {
 }
 
 model LeaveType {
-  id              String   @id @default(uuid())
-  tenantId        String
-  name            String   // Annual, Sick, Maternity, Unpaid
+  id                 String         @id @default(uuid())
+  tenantId           String
+  name               String
   daysAllowedPerYear Int
-  carryForward    Boolean  @default(false)
-  maxCarryForward Int?
-  isPaid          Boolean  @default(true)
-  createdAt       DateTime @default(now())
-
-  leaveRequests   LeaveRequest[]
+  carryForward       Boolean        @default(false)
+  maxCarryForward    Int?
+  isPaid             Boolean        @default(true)
+  createdAt          DateTime       @default(now())
+  leaveRequests      LeaveRequest[]
 
   @@unique([tenantId, name])
   @@map("leave_types")
 }
 
 model LeaveRequest {
-  id           String        @id @default(uuid())
-  employeeId   String
-  leaveTypeId  String
-  startDate    DateTime
-  endDate      DateTime
-  totalDays    Decimal       @db.Decimal(4, 1)
-  reason       String?
-  status       LeaveStatus   @default(PENDING)
-  approvedBy   String?
-  approvedAt   DateTime?
+  id             String      @id @default(uuid())
+  employeeId     String
+  leaveTypeId    String
+  startDate      DateTime
+  endDate        DateTime
+  totalDays      Decimal     @db.Decimal(4, 1)
+  reason         String?
+  status         LeaveStatus @default(PENDING)
+  approvedBy     String?
+  approvedAt     DateTime?
   rejectedReason String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-
-  employee     Employee      @relation(fields: [employeeId], references: [id])
-  leaveType    LeaveType     @relation(fields: [leaveTypeId], references: [id])
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  employee       Employee    @relation(fields: [employeeId], references: [id])
+  leaveType      LeaveType   @relation(fields: [leaveTypeId], references: [id])
 
   @@index([employeeId])
   @@map("leave_requests")
 }
 
 model Attendance {
-  id           String    @id @default(uuid())
-  employeeId   String
-  date         DateTime  @db.Date
-  clockIn      DateTime?
-  clockOut     DateTime?
-  totalHours   Decimal?  @db.Decimal(4, 2)
-  overtimeHours Decimal? @db.Decimal(4, 2)
-  status       AttendanceStatus @default(PRESENT)
-  notes        String?
-  createdAt    DateTime  @default(now())
-
-  employee     Employee  @relation(fields: [employeeId], references: [id])
+  id            String           @id @default(uuid())
+  employeeId    String
+  date          DateTime         @db.Date
+  clockIn       DateTime?
+  clockOut      DateTime?
+  totalHours    Decimal?         @db.Decimal(4, 2)
+  overtimeHours Decimal?         @db.Decimal(4, 2)
+  status        AttendanceStatus @default(PRESENT)
+  notes         String?
+  createdAt     DateTime         @default(now())
+  employee      Employee         @relation(fields: [employeeId], references: [id])
 
   @@unique([employeeId, date])
   @@index([employeeId, date])
@@ -488,85 +417,68 @@ model Attendance {
 }
 
 model PayrollRun {
-  id            String        @id @default(uuid())
-  tenantId      String
-  period        String        // "2026-04" (YYYY-MM)
-  status        PayrollStatus @default(DRAFT)
-  totalEmployees Int          @default(0)
-  totalGross    Decimal       @db.Decimal(18, 2) @default(0)
-  totalDeductions Decimal     @db.Decimal(18, 2) @default(0)
-  totalNet      Decimal       @db.Decimal(18, 2) @default(0)
-  currency      String        @default("USD")
-  processedAt   DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-
-  tenant        Tenant        @relation(fields: [tenantId], references: [id])
-  payslips      Payslip[]
+  id              String        @id @default(uuid())
+  tenantId        String
+  period          String
+  status          PayrollStatus @default(DRAFT)
+  totalEmployees  Int           @default(0)
+  totalGross      Decimal       @default(0) @db.Decimal(18, 2)
+  totalDeductions Decimal       @default(0) @db.Decimal(18, 2)
+  totalNet        Decimal       @default(0) @db.Decimal(18, 2)
+  currency        String        @default("USD")
+  processedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  payslips        Payslip[]
 
   @@unique([tenantId, period])
   @@map("payroll_runs")
 }
 
 model Payslip {
-  id              String    @id @default(uuid())
+  id              String     @id @default(uuid())
   payrollRunId    String
   employeeId      String
-  basicSalary     Decimal   @db.Decimal(18, 2)
-  // Allowances
-  allowances      Json      @default("{}") // HRA, transport, etc.
-  totalAllowances Decimal   @db.Decimal(18, 2) @default(0)
-  grossSalary     Decimal   @db.Decimal(18, 2)
-  // Deductions
-  deductions      Json      @default("{}") // PF, tax, insurance
-  totalDeductions Decimal   @db.Decimal(18, 2) @default(0)
-  netSalary       Decimal   @db.Decimal(18, 2)
-  currency        String    @default("USD")
-  pdfUrl          String?   // generated PDF link
-  createdAt       DateTime  @default(now())
-
-  payrollRun      PayrollRun @relation(fields: [payrollRunId], references: [id])
+  basicSalary     Decimal    @db.Decimal(18, 2)
+  allowances      Json       @default("{}")
+  totalAllowances Decimal    @default(0) @db.Decimal(18, 2)
+  grossSalary     Decimal    @db.Decimal(18, 2)
+  deductions      Json       @default("{}")
+  totalDeductions Decimal    @default(0) @db.Decimal(18, 2)
+  netSalary       Decimal    @db.Decimal(18, 2)
+  currency        String     @default("USD")
+  pdfUrl          String?
+  createdAt       DateTime   @default(now())
   employee        Employee   @relation(fields: [employeeId], references: [id])
+  payrollRun      PayrollRun @relation(fields: [payrollRunId], references: [id])
 
   @@unique([payrollRunId, employeeId])
   @@map("payslips")
 }
 
-// ============================================================
-// ███████╗██╗   ██╗██████╗ ██████╗ ██╗  ██╗   ██████╗██╗  ██╗ █████╗ ██╗███╗  ██╗
-// ██╔════╝██║   ██║██╔══██╗██╔══██╗██║  ╚██╗ ██╔════╝██║  ██║██╔══██╗██║████╗ ██║
-// ███████╗██║   ██║██████╔╝██████╔╝██║   ╚██╗██║     ███████║███████║██║██╔██╗██║
-// ╚════██║██║   ██║██╔═══╝ ██╔═══╝ ██║   ██╔╝██║     ██╔══██║██╔══██║██║██║╚████║
-// ███████║╚██████╔╝██║     ██║     ███████╔╝ ╚██████╗██║  ██║██║  ██║██║██║ ╚███║
-// ╚══════╝ ╚═════╝ ╚═╝     ╚═╝     ╚══════╝   ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚══╝
-// F-05: SUPPLY CHAIN & INVENTORY
-// F-06: AI DEMAND FORECASTING
-// Owner: M5
-// ============================================================
-
 model Vendor {
-  id            String       @id @default(uuid())
-  tenantId      String
-  name          String
-  code          String       // VEND-001
-  email         String?
-  phone         String?
-  website       String?
-  taxId         String?
-  paymentTerms  Int          @default(30) // days
-  currency      String       @default("USD")
-  rating        Decimal?     @db.Decimal(3, 2) // 0.00 - 5.00
-  status        VendorStatus @default(ACTIVE)
-  address       Json?
-  bankDetails   Json?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  deletedAt     DateTime?
-
-  tenant        Tenant         @relation(fields: [tenantId], references: [id])
-  purchaseOrders PurchaseOrder[]
-  invoices      Invoice[]
+  id             String          @id @default(uuid())
+  tenantId       String
+  name           String
+  code           String
+  email          String?
+  phone          String?
+  website        String?
+  taxId          String?
+  paymentTerms   Int             @default(30)
+  currency       String          @default("USD")
+  rating         Decimal?        @db.Decimal(3, 2)
+  status         VendorStatus    @default(ACTIVE)
+  address        Json?
+  bankDetails    Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
   inventoryItems InventoryItem[]
+  invoices       Invoice[]
+  purchaseOrders PurchaseOrder[]
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -574,29 +486,27 @@ model Vendor {
 }
 
 model PurchaseOrder {
-  id              String      @id @default(uuid())
-  tenantId        String
-  poNumber        String      // PO-2026-0001
-  vendorId        String
-  requestedBy     String?
-  approvedBy      String?
-  status          POStatus    @default(DRAFT)
-  currency        String      @default("USD")
-  subtotal        Decimal     @db.Decimal(18, 2)
-  taxAmount       Decimal     @db.Decimal(18, 2) @default(0)
-  totalAmount     Decimal     @db.Decimal(18, 2)
+  id               String         @id @default(uuid())
+  tenantId         String
+  poNumber         String
+  vendorId         String
+  requestedBy      String?
+  approvedBy       String?
+  status           POStatus       @default(DRAFT)
+  currency         String         @default("USD")
+  subtotal         Decimal        @db.Decimal(18, 2)
+  taxAmount        Decimal        @default(0) @db.Decimal(18, 2)
+  totalAmount      Decimal        @db.Decimal(18, 2)
   expectedDelivery DateTime?
-  deliveredAt     DateTime?
-  notes           String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-
-  // Relations
-  tenant          Tenant      @relation(fields: [tenantId], references: [id])
-  vendor          Vendor      @relation(fields: [vendorId], references: [id])
-  lineItems       POLineItem[]
-  goodsReceipts   GoodsReceipt[]
-  invoices        Invoice[]
+  deliveredAt      DateTime?
+  notes            String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  goodsReceipts    GoodsReceipt[]
+  invoices         Invoice[]
+  lineItems        POLineItem[]
+  tenant           Tenant         @relation(fields: [tenantId], references: [id])
+  vendor           Vendor         @relation(fields: [vendorId], references: [id])
 
   @@unique([tenantId, poNumber])
   @@index([tenantId, status])
@@ -604,31 +514,29 @@ model PurchaseOrder {
 }
 
 model POLineItem {
-  id              String        @id @default(uuid())
+  id              String         @id @default(uuid())
   purchaseOrderId String
   inventoryItemId String?
   description     String
-  quantity        Decimal       @db.Decimal(10, 2)
-  unitPrice       Decimal       @db.Decimal(18, 2)
-  totalPrice      Decimal       @db.Decimal(18, 2)
-  receivedQty     Decimal       @db.Decimal(10, 2) @default(0)
-
-  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  quantity        Decimal        @db.Decimal(10, 2)
+  unitPrice       Decimal        @db.Decimal(18, 2)
+  totalPrice      Decimal        @db.Decimal(18, 2)
+  receivedQty     Decimal        @default(0) @db.Decimal(10, 2)
   inventoryItem   InventoryItem? @relation(fields: [inventoryItemId], references: [id])
+  purchaseOrder   PurchaseOrder  @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
 
   @@map("po_line_items")
 }
 
 model GoodsReceipt {
-  id              String        @id @default(uuid())
+  id              String             @id @default(uuid())
   purchaseOrderId String
   receivedBy      String?
   receiptDate     DateTime
   notes           String?
-  createdAt       DateTime      @default(now())
-
-  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  createdAt       DateTime           @default(now())
   lineItems       GoodsReceiptLine[]
+  purchaseOrder   PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id])
 
   @@map("goods_receipts")
 }
@@ -640,38 +548,36 @@ model GoodsReceiptLine {
   description     String
   orderedQty      Decimal      @db.Decimal(10, 2)
   receivedQty     Decimal      @db.Decimal(10, 2)
-
   goodsReceipt    GoodsReceipt @relation(fields: [goodsReceiptId], references: [id], onDelete: Cascade)
 
   @@map("goods_receipt_lines")
 }
 
 model InventoryItem {
-  id             String    @id @default(uuid())
-  tenantId       String
-  sku            String    // SKU-001
-  name           String
-  description    String?
-  category       String?
-  unitOfMeasure  String    @default("PCS")
-  costingMethod  CostingMethod @default(FIFO)
-  unitCost       Decimal   @db.Decimal(18, 2)
-  sellingPrice   Decimal?  @db.Decimal(18, 2)
-  quantityOnHand Decimal   @db.Decimal(10, 2) @default(0)
-  quantityOnOrder Decimal  @db.Decimal(10, 2) @default(0)
-  reorderPoint   Decimal   @db.Decimal(10, 2) @default(0) // trigger PO
-  reorderQty     Decimal   @db.Decimal(10, 2) @default(0)
+  id                String          @id @default(uuid())
+  tenantId          String
+  sku               String
+  name              String
+  description       String?
+  category          String?
+  unitOfMeasure     String          @default("PCS")
+  costingMethod     CostingMethod   @default(FIFO)
+  unitCost          Decimal         @db.Decimal(18, 2)
+  sellingPrice      Decimal?        @db.Decimal(18, 2)
+  quantityOnHand    Decimal         @default(0) @db.Decimal(10, 2)
+  quantityOnOrder   Decimal         @default(0) @db.Decimal(10, 2)
+  reorderPoint      Decimal         @default(0) @db.Decimal(10, 2)
+  reorderQty        Decimal         @default(0) @db.Decimal(10, 2)
   warehouseLocation String?
   preferredVendorId String?
-  isActive       Boolean   @default(true)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  tenant         Tenant    @relation(fields: [tenantId], references: [id])
-  preferredVendor Vendor?  @relation(fields: [preferredVendorId], references: [id])
-  poLineItems    POLineItem[]
-  forecasts      Forecast[]
-  stockMovements StockMovement[]
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  forecasts         Forecast[]
+  preferredVendor   Vendor?         @relation(fields: [preferredVendorId], references: [id])
+  tenant            Tenant          @relation(fields: [tenantId], references: [id])
+  poLineItems       POLineItem[]
+  stockMovements    StockMovement[]
 
   @@unique([tenantId, sku])
   @@index([tenantId])
@@ -679,77 +585,62 @@ model InventoryItem {
 }
 
 model StockMovement {
-  id              String         @id @default(uuid())
+  id              String        @id @default(uuid())
   inventoryItemId String
-  type            MovementType   // IN, OUT, ADJUSTMENT, TRANSFER
-  quantity        Decimal        @db.Decimal(10, 2)
-  unitCost        Decimal?       @db.Decimal(18, 2)
-  reference       String?        // PO number, invoice number
+  type            MovementType
+  quantity        Decimal       @db.Decimal(10, 2)
+  unitCost        Decimal?      @db.Decimal(18, 2)
+  reference       String?
   notes           String?
-  createdAt       DateTime       @default(now())
-
-  inventoryItem   InventoryItem  @relation(fields: [inventoryItemId], references: [id])
+  createdAt       DateTime      @default(now())
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
 
   @@index([inventoryItemId, createdAt])
   @@map("stock_movements")
 }
 
-// F-06: AI Demand Forecasting
 model Forecast {
-  id              String    @id @default(uuid())
+  id              String        @id @default(uuid())
   tenantId        String
   inventoryItemId String
-  modelType       String    @default("PROPHET") // PROPHET, LSTM
+  modelType       String        @default("PROPHET")
   modelVersion    String?
-  forecastDate    DateTime  // date of prediction
-  forecastPeriod  String    // "2026-05" month being predicted
-  predictedQty    Decimal   @db.Decimal(10, 2)
-  confidenceLow   Decimal?  @db.Decimal(10, 2)
-  confidenceHigh  Decimal?  @db.Decimal(10, 2)
-  mape            Decimal?  @db.Decimal(6, 3)  // accuracy metric
-  actualQty       Decimal?  @db.Decimal(10, 2) // filled after actuals known
-  createdAt       DateTime  @default(now())
-
-  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  forecastDate    DateTime
+  forecastPeriod  String
+  predictedQty    Decimal       @db.Decimal(10, 2)
+  confidenceLow   Decimal?      @db.Decimal(10, 2)
+  confidenceHigh  Decimal?      @db.Decimal(10, 2)
+  mape            Decimal?      @db.Decimal(6, 3)
+  actualQty       Decimal?      @db.Decimal(10, 2)
+  createdAt       DateTime      @default(now())
   inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId, inventoryItemId, forecastPeriod])
   @@map("forecasts")
 }
 
-// ============================================================
-// ██████╗ ██████╗  ██████╗      ██╗███████╗ ██████╗████████╗
-// ██╔══██╗██╔══██╗██╔═══██╗     ██║██╔════╝██╔════╝╚══██╔══╝
-// ██████╔╝██████╔╝██║   ██║     ██║█████╗  ██║        ██║
-// ██╔═══╝ ██╔══██╗██║   ██║██   ██║██╔══╝  ██║        ██║
-// ██║     ██║  ██║╚██████╔╝╚█████╔╝███████╗╚██████╗   ██║
-// ╚═╝     ╚═╝  ╚═╝ ╚═════╝  ╚════╝ ╚══════╝ ╚═════╝   ╚═╝
-// F-07: PROJECT MANAGEMENT
-// Owner: M4
-// ============================================================
-
 model Project {
-  id           String        @id @default(uuid())
-  tenantId     String
-  name         String
-  code         String        // PROJ-001
-  description  String?
-  status       ProjectStatus @default(PLANNING)
-  startDate    DateTime?
-  endDate      DateTime?
-  budget       Decimal       @db.Decimal(18, 2) @default(0)
-  actualCost   Decimal       @db.Decimal(18, 2) @default(0)
-  currency     String        @default("USD")
-  managerId    String?
-  clientName   String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  deletedAt    DateTime?
-
-  tenant       Tenant          @relation(fields: [tenantId], references: [id])
-  milestones   ProjectMilestone[]
-  tasks        ProjectTask[]
-  resources    ProjectResource[]
+  id          String             @id @default(uuid())
+  tenantId    String
+  name        String
+  code        String
+  description String?
+  status      ProjectStatus      @default(PLANNING)
+  startDate   DateTime?
+  endDate     DateTime?
+  budget      Decimal            @default(0) @db.Decimal(18, 2)
+  actualCost  Decimal            @default(0) @db.Decimal(18, 2)
+  currency    String             @default("USD")
+  managerId   String?
+  clientName  String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  deletedAt   DateTime?
+  milestones  ProjectMilestone[]
+  resources   ProjectResource[]
+  tasks       ProjectTask[]
+  tenant      Tenant             @relation(fields: [tenantId], references: [id])
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -765,7 +656,6 @@ model ProjectMilestone {
   status      MilestoneStatus @default(PENDING)
   completedAt DateTime?
   createdAt   DateTime        @default(now())
-
   project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tasks       ProjectTask[]
 
@@ -773,61 +663,49 @@ model ProjectMilestone {
 }
 
 model ProjectTask {
-  id            String      @id @default(uuid())
-  projectId     String
-  milestoneId   String?
-  parentTaskId  String?     // for subtasks
-  title         String
-  description   String?
-  status        TaskStatus  @default(TODO)
-  priority      Priority    @default(MEDIUM)
-  assignedTo    String?
-  estimatedHours Decimal?   @db.Decimal(6, 2)
-  actualHours   Decimal?    @db.Decimal(6, 2)
-  startDate     DateTime?
-  dueDate       DateTime?
-  completedAt   DateTime?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  project       Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  milestone     ProjectMilestone? @relation(fields: [milestoneId], references: [id])
-  parentTask    ProjectTask? @relation("TaskHierarchy", fields: [parentTaskId], references: [id])
-  subTasks      ProjectTask[] @relation("TaskHierarchy")
-  assignee      User?        @relation("AssignedToUser", fields: [assignedTo], references: [id])
-  employeeAssignee Employee? @relation("AssignedToUser", fields: [assignedTo], references: [id])
+  id                   String            @id @default(uuid())
+  projectId            String
+  milestoneId          String?
+  parentTaskId         String?
+  title                String
+  description          String?
+  status               TaskStatus        @default(TODO)
+  priority             Priority          @default(MEDIUM)
+  estimatedHours       Decimal?          @db.Decimal(6, 2)
+  actualHours          Decimal?          @db.Decimal(6, 2)
+  startDate            DateTime?
+  dueDate              DateTime?
+  completedAt          DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  assignedToEmployeeId String?
+  assignedToUserId     String?
+  employeeAssignee     Employee?         @relation("TaskAssignedToEmployee", fields: [assignedToEmployeeId], references: [id])
+  assignee             User?             @relation("TaskAssignedToUser", fields: [assignedToUserId], references: [id])
+  milestone            ProjectMilestone? @relation(fields: [milestoneId], references: [id])
+  parentTask           ProjectTask?      @relation("TaskHierarchy", fields: [parentTaskId], references: [id])
+  subTasks             ProjectTask[]     @relation("TaskHierarchy")
+  project              Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
   @@map("project_tasks")
 }
 
 model ProjectResource {
-  id          String   @id @default(uuid())
-  projectId   String
-  employeeId  String
-  role        String?  // Developer, Designer, QA
-  allocation  Decimal  @db.Decimal(5, 2) // percentage 0-100
-  startDate   DateTime?
-  endDate     DateTime?
-  createdAt   DateTime @default(now())
-
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  employee    Employee @relation(fields: [employeeId], references: [id])
+  id         String    @id @default(uuid())
+  projectId  String
+  employeeId String
+  role       String?
+  allocation Decimal   @db.Decimal(5, 2)
+  startDate  DateTime?
+  endDate    DateTime?
+  createdAt  DateTime  @default(now())
+  employee   Employee  @relation(fields: [employeeId], references: [id])
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, employeeId])
   @@map("project_resources")
 }
-
-// ============================================================
-// ██████╗ ██╗
-// ██╔══██╗██║
-// ██████╔╝██║
-// ██╔══██╗██║
-// ██████╔╝██║
-// ╚═════╝ ╚═╝
-// F-08: BUSINESS INTELLIGENCE
-// Owner: M6
-// ============================================================
 
 model Dashboard {
   id          String   @id @default(uuid())
@@ -836,10 +714,9 @@ model Dashboard {
   description String?
   createdBy   String
   isPublic    Boolean  @default(false)
-  layout      Json     @default("[]") // widget positions grid
+  layout      Json     @default("[]")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   tenant      Tenant   @relation(fields: [tenantId], references: [id])
   widgets     Widget[]
 
@@ -848,104 +725,79 @@ model Dashboard {
 }
 
 model Widget {
-  id            String     @id @default(uuid())
-  dashboardId   String
-  title         String
-  type          WidgetType // BAR, LINE, PIE, METRIC_CARD, TABLE, HEATMAP
-  dataSource    String     // finance.revenue, hr.headcount, supply.inventory
-  config        Json       @default("{}") // filters, groupBy, dateRange
-  position      Json       @default("{}") // x, y, width, height
-  refreshInterval Int?     // seconds, null = manual
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
-  dashboard     Dashboard  @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  id              String     @id @default(uuid())
+  dashboardId     String
+  title           String
+  type            WidgetType
+  dataSource      String
+  config          Json       @default("{}")
+  position        Json       @default("{}")
+  refreshInterval Int?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  dashboard       Dashboard  @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
 
   @@map("widgets")
 }
 
 model ScheduledReport {
-  id           String         @id @default(uuid())
-  tenantId     String
-  name         String
-  description  String?
-  reportType   String         // finance_pl, hr_headcount, inventory_summary
-  format       ReportFormat   @default(PDF)
-  schedule     String         // cron expression: "0 9 * * 1" = every Monday 9am
-  recipients   String[]       // email addresses
-  config       Json           @default("{}") // filters, date ranges
-  lastRunAt    DateTime?
-  nextRunAt    DateTime?
-  isActive     Boolean        @default(true)
-  createdAt    DateTime       @default(now())
+  id          String       @id @default(uuid())
+  tenantId    String
+  name        String
+  description String?
+  reportType  String
+  format      ReportFormat @default(PDF)
+  schedule    String
+  recipients  String[]
+  config      Json         @default("{}")
+  lastRunAt   DateTime?
+  nextRunAt   DateTime?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
 
   @@index([tenantId])
   @@map("scheduled_reports")
 }
 
-// ============================================================
-//  █████╗ ██╗   ██╗██████╗ ██╗████████╗
-// ██╔══██╗██║   ██║██╔══██╗██║╚══██╔══╝
-// ███████║██║   ██║██║  ██║██║   ██║
-// ██╔══██║██║   ██║██║  ██║██║   ██║
-// ██║  ██║╚██████╔╝██████╔╝██║   ██║
-// ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝   ╚═╝
-// F-09: AUDIT & COMPLIANCE LOG
-// Owner: M2
-// ============================================================
-
 model AuditLog {
-  id           String   @id @default(uuid())
-  tenantId     String
-  userId       String?
-  action       String   // CREATE, UPDATE, DELETE, LOGIN, APPROVE, EXPORT
-  resource     String   // invoice, employee, journal_entry, user
-  resourceId   String?
-  oldValues    Json?    // before state
-  newValues    Json?    // after state
-  ipAddress    String?
-  userAgent    String?
-  hash         String?  // SHA-256 of previous log hash (tamper detection)
-  createdAt    DateTime @default(now())
-
-  tenant       Tenant   @relation(fields: [tenantId], references: [id])
-  user         User?    @relation(fields: [userId], references: [id])
+  id         String   @id @default(uuid())
+  tenantId   String
+  userId     String?
+  action     String
+  resource   String
+  resourceId String?
+  oldValues  Json?
+  newValues  Json?
+  ipAddress  String?
+  userAgent  String?
+  hash       String?
+  createdAt  DateTime @default(now())
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+  user       User?    @relation(fields: [userId], references: [id])
 
   @@index([tenantId, resource, createdAt])
   @@index([tenantId, userId, createdAt])
   @@map("audit_logs")
 }
 
-// ============================================================
-// ███╗  ██╗ ██████╗ ████████╗██╗███████╗██╗ ██████╗ █████╗ ████████╗██╗ ██████╗ ███╗  ██╗
-// ████╗ ██║██╔═══██╗╚══██╔══╝██║██╔════╝██║██╔════╝██╔══██╗╚══██╔══╝██║██╔═══██╗████╗ ██║
-// ██╔██╗██║██║   ██║   ██║   ██║█████╗  ██║██║     ███████║   ██║   ██║██║   ██║██╔██╗██║
-// ██║╚████║██║   ██║   ██║   ██║██╔══╝  ██║██║     ██╔══██║   ██║   ██║██║   ██║██║╚████║
-// ██║ ╚███║╚██████╔╝   ██║   ██║██║     ██║╚██████╗██║  ██║   ██║   ██║╚██████╔╝██║ ╚███║
-// ╚═╝  ╚══╝ ╚═════╝    ╚═╝   ╚═╝╚═╝     ╚═╝ ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚══╝
-// F-10: NOTIFICATION ENGINE
-// Owner: M5
-// ============================================================
-
 model Notification {
-  id          String             @id @default(uuid())
+  id          String              @id @default(uuid())
   tenantId    String
   userId      String
   title       String
   message     String
-  type        NotificationType   // INFO, WARNING, ERROR, SUCCESS
-  channel     NotificationChannel // IN_APP, EMAIL, SMS, WEBHOOK
-  event       String             // invoice.approved, payroll.completed, stock.low
+  type        NotificationType
+  channel     NotificationChannel
+  event       String
   resourceId  String?
-  isRead      Boolean            @default(false)
+  isRead      Boolean             @default(false)
   readAt      DateTime?
   deliveredAt DateTime?
   failedAt    DateTime?
-  retryCount  Int                @default(0)
-  createdAt   DateTime           @default(now())
-
-  tenant      Tenant             @relation(fields: [tenantId], references: [id])
-  user        User               @relation(fields: [userId], references: [id])
+  retryCount  Int                 @default(0)
+  createdAt   DateTime            @default(now())
+  tenant      Tenant              @relation(fields: [tenantId], references: [id])
+  user        User                @relation(fields: [userId], references: [id])
 
   @@index([tenantId, userId, isRead])
   @@index([tenantId, createdAt])
@@ -953,91 +805,73 @@ model Notification {
 }
 
 model NotificationPreference {
-  id        String              @id @default(uuid())
+  id        String   @id @default(uuid())
   tenantId  String
   userId    String
-  event     String              // invoice.approved, payroll.completed
-  inApp     Boolean             @default(true)
-  email     Boolean             @default(true)
-  sms       Boolean             @default(false)
-  webhook   Boolean             @default(false)
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-
-  tenant    Tenant              @relation(fields: [tenantId], references: [id])
-  user      User                @relation(fields: [userId], references: [id])
+  event     String
+  inApp     Boolean  @default(true)
+  email     Boolean  @default(true)
+  sms       Boolean  @default(false)
+  webhook   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([tenantId, userId, event])
   @@map("notification_preferences")
 }
 
 model Webhook {
-  id          String        @id @default(uuid())
-  tenantId    String
-  name        String
-  url         String
-  secret      String        // HMAC signing secret
-  events      String[]      // ["invoice.created", "po.approved"]
-  isActive    Boolean       @default(true)
-  lastUsedAt  DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  tenant      Tenant        @relation(fields: [tenantId], references: [id])
-  deliveries  WebhookDelivery[]
+  id         String            @id @default(uuid())
+  tenantId   String
+  name       String
+  url        String
+  secret     String
+  events     String[]
+  isActive   Boolean           @default(true)
+  lastUsedAt DateTime?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  deliveries WebhookDelivery[]
+  tenant     Tenant            @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId])
   @@map("webhooks")
 }
 
 model WebhookDelivery {
-  id           String    @id @default(uuid())
-  webhookId    String
-  event        String
-  payload      Json
-  statusCode   Int?
-  response     String?
-  attempt      Int       @default(1)
-  succeededAt  DateTime?
-  failedAt     DateTime?
-  createdAt    DateTime  @default(now())
-
-  webhook      Webhook   @relation(fields: [webhookId], references: [id])
+  id          String    @id @default(uuid())
+  webhookId   String
+  event       String
+  payload     Json
+  statusCode  Int?
+  response    String?
+  attempt     Int       @default(1)
+  succeededAt DateTime?
+  failedAt    DateTime?
+  createdAt   DateTime  @default(now())
+  webhook     Webhook   @relation(fields: [webhookId], references: [id])
 
   @@index([webhookId])
   @@map("webhook_deliveries")
 }
 
-// ============================================================
-// ██████╗ ██╗    ██╗ █████╗
-// ██╔══██╗██║    ██║██╔══██╗
-// ██████╔╝██║ █╗ ██║███████║
-// ██╔═══╝ ██║███╗██║██╔══██║
-// ██║     ╚███╔███╔╝██║  ██║
-// ╚═╝      ╚══╝╚══╝ ╚═╝  ╚═╝
-// F-12: OFFLINE / PWA SUPPORT
-// Owner: M6
-// ============================================================
-
 model SyncQueue {
-  id          String      @id @default(uuid())
-  tenantId    String
-  userId      String
-  operation   String      // CREATE, UPDATE, DELETE
-  resource    String      // invoice, leave_request, attendance
-  payload     Json
-  status      SyncStatus  @default(PENDING)
-  syncedAt    DateTime?
-  errorMsg    String?
-  createdAt   DateTime    @default(now())
+  id        String     @id @default(uuid())
+  tenantId  String
+  userId    String
+  operation String
+  resource  String
+  payload   Json
+  status    SyncStatus @default(PENDING)
+  syncedAt  DateTime?
+  errorMsg  String?
+  createdAt DateTime   @default(now())
 
   @@index([tenantId, userId, status])
   @@map("sync_queue")
 }
-
-// ============================================================
-// ENUMS
-// ============================================================
 
 enum PlanType {
   STARTER
@@ -1066,8 +900,8 @@ enum JournalEntryStatus {
 }
 
 enum InvoiceType {
-  AP  // Accounts Payable (we owe vendor)
-  AR  // Accounts Receivable (customer owes us)
+  AP
+  AR
 }
 
 enum InvoiceStatus {
