@@ -24,10 +24,11 @@ export interface LoginInput {
 }
 
 export interface TokenPayload {
-  userId:   string;
-  tenantId: string;
-  email:    string;
-  roles:    string[];
+  userId:      string;
+  tenantId:    string;
+  email:       string;
+  roles:       string[];
+  permissions: string[];
 }
 
 export interface AuthTokens {
@@ -85,13 +86,27 @@ export const authService = {
       throw new Error('EMAIL_TAKEN');
     }
 
-    // 2. Generate slug from company name
-    const slug = companySlug ||
-      companyName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+    // 2. Generate a base slug from the company name (or provided slug)
+    const baseSlug = (companySlug || companyName)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
 
-    // Check slug not taken
-    const slugTaken = await prisma.tenant.findUnique({ where: { slug } });
-    if (slugTaken) throw new Error('SLUG_TAKEN');
+    // If a custom slug was explicitly provided and it's taken, reject it.
+    if (companySlug) {
+      const taken = await prisma.tenant.findUnique({ where: { slug: baseSlug } });
+      if (taken) throw new Error('SLUG_TAKEN');
+    }
+
+    // Otherwise auto-generate a UNIQUE slug so the same company NAME is allowed.
+    // e.g. "amdox", "amdox-2", "amdox-3" ... (like Slack workspaces)
+    let slug = baseSlug;
+    let suffix = 1;
+    // eslint-disable-next-line no-await-in-loop
+    while (await prisma.tenant.findUnique({ where: { slug } })) {
+      suffix += 1;
+      slug = `${baseSlug}-${suffix}`;
+    }
 
     // 3. Hash password
     const passwordHash = await authService.hashPassword(password);
@@ -227,6 +242,7 @@ export const authService = {
       tenantId: user.tenantId,
       email:    user.email,
       roles,
+      permissions,
     };
 
     const accessToken  = authService.signAccessToken(payload);
@@ -296,7 +312,13 @@ export const authService = {
         user: {
           include: {
             userRoles: {
-              include: { role: true },
+              include: {
+                role: {
+                  include: {
+                    permissions: { include: { permission: true } },
+                  },
+                },
+              },
             },
           },
         },
@@ -308,6 +330,9 @@ export const authService = {
     if (!session.user.isActive)            throw new Error('ACCOUNT_INACTIVE');
 
     const roles = session.user.userRoles.map((ur: any) => ur.role.name);
+    const permissions = session.user.userRoles.flatMap((ur: any) =>
+      ur.role.permissions.map((rp: any) => `${rp.permission.resource}:${rp.permission.action}`)
+    );
 
     // 2. Sign new access token
     const payload: TokenPayload = {
@@ -315,6 +340,7 @@ export const authService = {
       tenantId: session.user.tenantId,
       email:    session.user.email,
       roles,
+      permissions,
     };
 
     const newAccessToken  = authService.signAccessToken(payload);
