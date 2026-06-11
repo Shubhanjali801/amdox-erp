@@ -31,7 +31,7 @@
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-org/amdox-erp.git
+git clone https://github.com/Shubhanjali801/amdox-erp.git
 cd amdox-erp
 ```
 

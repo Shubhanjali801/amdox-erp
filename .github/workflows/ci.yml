@@ -2,9 +2,9 @@ name: CI — Lint & Test
 
 on:
   push:
-    branches: [dev, main]
+    branches: [ main]
   pull_request:
-    branches: [dev, main]
+    branches: [ main]
 
 jobs:
   lint-and-test-backend:
@@ -71,6 +71,7 @@ jobs:
         run: npm run test:integration -- --passWithNoTests
         env:
           NODE_ENV: test
+          
           DATABASE_URL: "postgresql://admin:admin123@localhost:5432/amdox_test"
           REDIS_HOST: localhost
           REDIS_PORT: 6379
