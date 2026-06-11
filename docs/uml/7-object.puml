@@ -1,0 +1,44 @@
+@startuml Amdox-ERP-Object
+title Amdox ERP — Object Diagram (Runtime Snapshot)
+
+object "amdox : Tenant" as t {
+  id = "tnt-001"
+  name = "Amdox Technologies"
+  slug = "amdox-technologies"
+  plan = "STARTER"
+}
+
+object "shubhanjali : User" as u1 {
+  email = "admin@amdox.com"
+  firstName = "Shubhanjali"
+  isActive = true
+}
+
+object "adminRole : Role" as r {
+  name = "tenant_admin"
+  isSystem = true
+}
+
+object "writeUsers : Permission" as p {
+  resource = "users"
+  action = "write"
+}
+
+object "cash : ChartOfAccount" as a {
+  code = "1001"
+  name = "Cash in Hand"
+  type = "ASSET"
+}
+
+object "inv001 : Invoice" as inv {
+  invoiceNumber = "INV-2026-001"
+  totalAmount = 50000
+  status = "APPROVED"
+}
+
+t --> u1 : has
+u1 --> r : assigned
+r --> p : grants
+t --> a : owns
+t --> inv : owns
+@enduml

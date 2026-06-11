@@ -1,0 +1,40 @@
+@startuml Amdox-ERP-Activity
+title Amdox ERP — Activity Diagram (Create User with RBAC)
+
+start
+:User sends POST /users;
+:authenticate (verify JWT);
+if (Token valid?) then (no)
+  :Return 401 Unauthorized;
+  stop
+else (yes)
+endif
+
+if (Has users:write permission?) then (no)
+  :Return 403 Forbidden;
+  stop
+else (yes)
+endif
+
+:Validate request body (Joi);
+if (Body valid?) then (no)
+  :Return 422 Validation error;
+  stop
+else (yes)
+endif
+
+:Check email unique in tenant;
+if (Email exists?) then (yes)
+  :Return 409 Conflict;
+  stop
+else (no)
+endif
+
+partition "DB Transaction" {
+  :Hash password (bcrypt);
+  :INSERT user;
+  :Assign roles (UserRole);
+}
+:Return 201 Created;
+stop
+@enduml

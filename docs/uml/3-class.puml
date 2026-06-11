@@ -1,0 +1,87 @@
+@startuml Amdox-ERP-Class
+title Amdox ERP — Class Diagram (Core Domain)
+skinparam classAttributeIconSize 0
+
+class Tenant {
+  +id: UUID
+  +name: string
+  +slug: string
+  +plan: PlanType
+  +isActive: boolean
+  +settings: Json
+}
+
+class User {
+  +id: UUID
+  +tenantId: UUID
+  +email: string
+  +passwordHash: string
+  +firstName: string
+  +lastName: string
+  +isActive: boolean
+  +mfaEnabled: boolean
+  --
+  +login()
+  +changePassword()
+}
+
+class Role {
+  +id: UUID
+  +name: string
+  +isSystem: boolean
+}
+
+class Permission {
+  +id: UUID
+  +resource: string
+  +action: string
+}
+
+class ChartOfAccount {
+  +id: UUID
+  +code: string
+  +name: string
+  +type: AccountType
+  +parentId: UUID
+}
+
+class Invoice {
+  +id: UUID
+  +invoiceNumber: string
+  +type: InvoiceType
+  +totalAmount: Decimal
+  +status: InvoiceStatus
+}
+
+class Employee {
+  +id: UUID
+  +employeeCode: string
+  +baseSalary: Decimal
+}
+
+class InventoryItem {
+  +id: UUID
+  +sku: string
+  +quantityOnHand: Decimal
+  +reorderPoint: Decimal
+}
+
+class Forecast {
+  +id: UUID
+  +modelType: string
+  +predictedQty: Decimal
+  +mape: Decimal
+}
+
+Tenant "1" *-- "many" User
+Tenant "1" *-- "many" Role
+User "many" -- "many" Role : UserRole
+Role "many" -- "many" Permission : RolePermission
+Tenant "1" *-- "many" ChartOfAccount
+Tenant "1" *-- "many" Invoice
+Tenant "1" *-- "many" Employee
+User "1" -- "0..1" Employee
+Tenant "1" *-- "many" InventoryItem
+InventoryItem "1" *-- "many" Forecast
+ChartOfAccount "1" o-- "many" ChartOfAccount : parent
+@enduml

@@ -1,0 +1,48 @@
+@startuml Amdox-ERP-Component
+title Amdox ERP — Component Diagram
+skinparam componentStyle rectangle
+
+package "Frontend" {
+  [React 18 + Vite SPA] as FE
+  [Zustand Store] as ZS
+  [TanStack Query] as TQ
+}
+
+package "Backend (NestJS :5000)" {
+  [API Gateway / Routes] as RT
+  [Auth + RBAC Middleware] as AUTH
+  [Controllers] as CTRL
+  [Services (Business Logic)] as SVC
+  [Prisma ORM] as ORM
+  [BullMQ Producers] as BQ
+}
+
+package "ML Microservice (:8000)" {
+  [FastAPI] as FA
+  [LSTM Model] as LSTM
+  [Prophet Model] as PROPHET
+}
+
+database "PostgreSQL 17" as PG
+queue "Redis 7" as RD
+[Keycloak 25 (SSO)] as KC
+[Elasticsearch] as ES
+cloud "AWS S3 / SES" as AWS
+
+FE --> RT : HTTPS / REST
+FE ..> ZS
+FE ..> TQ
+RT --> AUTH
+AUTH --> CTRL
+CTRL --> SVC
+SVC --> ORM
+ORM --> PG
+SVC --> BQ
+BQ --> RD
+SVC --> FA : HTTP (forecast)
+FA --> LSTM
+FA --> PROPHET
+AUTH --> KC : OIDC
+SVC --> ES : full-text search
+SVC --> AWS : files / email
+@enduml

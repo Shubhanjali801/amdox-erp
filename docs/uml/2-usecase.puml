@@ -1,0 +1,50 @@
+@startuml Amdox-ERP-UseCase
+title Amdox ERP — Use Case Diagram
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Super Admin"     as SA
+actor "Tenant Admin"    as TA
+actor "Finance Manager" as FM
+actor "HR Manager"      as HR
+actor "Supply Manager"  as SM
+actor "Viewer"          as VW
+actor "ML Service"      as ML <<system>>
+actor "Keycloak SSO"    as KC <<system>>
+
+rectangle "Amdox ERP Suite" {
+  usecase "Login / MFA"            as UC1
+  usecase "Manage Users"          as UC2
+  usecase "Manage Tenant"         as UC3
+  usecase "Chart of Accounts"     as UC4
+  usecase "Invoices (AP/AR)"      as UC5
+  usecase "Record Payments"       as UC6
+  usecase "Manage Employees"      as UC7
+  usecase "Run Payroll"           as UC8
+  usecase "Purchase Orders"       as UC9
+  usecase "Manage Inventory"      as UC10
+  usecase "Demand Forecast"       as UC11
+  usecase "View Dashboards"       as UC12
+  usecase "Audit Logs"            as UC13
+}
+
+SA --> UC2
+SA --> UC3
+SA --> UC13
+TA --> UC1
+TA --> UC2
+TA --> UC3
+FM --> UC4
+FM --> UC5
+FM --> UC6
+HR --> UC7
+HR --> UC8
+SM --> UC9
+SM --> UC10
+SM --> UC11
+VW --> UC12
+
+UC1 ..> KC  : <<include>> SSO
+UC11 ..> ML : <<include>> predict
+UC8  ..> UC6 : <<extend>> bank transfer
+@enduml

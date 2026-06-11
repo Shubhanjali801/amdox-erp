@@ -1,0 +1,45 @@
+@startuml Amdox-ERP-Deployment
+title Amdox ERP — Deployment Diagram
+
+node "Client Device" {
+  artifact "Browser (React SPA)" as browser
+}
+
+cloud "CDN / Load Balancer" as lb
+
+node "Docker Host / Kubernetes Cluster" {
+
+  node "frontend-container" {
+    artifact "Nginx + Vite build" as nginx
+  }
+
+  node "backend-container" {
+    artifact "Node.js 22 + NestJS" as api
+  }
+
+  node "ml-container" {
+    artifact "Python FastAPI\nLSTM + Prophet" as ml
+  }
+
+  database "postgres-container\nPostgreSQL 17" as pg
+  queue "redis-container\nRedis 7" as redis
+  node "keycloak-container\nKeycloak 25" as kc
+  node "elasticsearch-container" as es
+}
+
+cloud "AWS" {
+  artifact "S3 (files)" as s3
+  artifact "SES (email)" as ses
+}
+
+browser --> lb : HTTPS
+lb --> nginx
+nginx --> api : /api/v1
+api --> pg : Prisma (5432)
+api --> redis : BullMQ (6379)
+api --> ml : HTTP (8000)
+api --> kc : OIDC (8080)
+api --> es : search (9200)
+api --> s3
+api --> ses
+@enduml

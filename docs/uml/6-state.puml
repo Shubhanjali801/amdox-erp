@@ -1,0 +1,29 @@
+@startuml Amdox-ERP-State
+title Amdox ERP — State Diagram (Invoice Lifecycle)
+
+[*] --> DRAFT : create invoice
+
+DRAFT --> PENDING : submit
+DRAFT --> CANCELLED : discard
+
+PENDING --> APPROVED : manager approves
+PENDING --> DRAFT : request changes
+PENDING --> CANCELLED : reject
+
+APPROVED --> PARTIALLY_PAID : partial payment
+APPROVED --> PAID : full payment
+APPROVED --> OVERDUE : due date passed
+
+PARTIALLY_PAID --> PAID : remaining paid
+PARTIALLY_PAID --> OVERDUE : due date passed
+
+OVERDUE --> PAID : payment received
+
+PAID --> [*]
+CANCELLED --> [*]
+
+note right of APPROVED
+  3-way match:
+  PO + GRN + Invoice
+end note
+@enduml
