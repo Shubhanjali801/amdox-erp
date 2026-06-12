@@ -1,0 +1,152 @@
+{
+  "tenant_id": "tenant-demo-001",
+  "inventory_item_id": "item-002",
+  "model_type": "auto",
+  "forecast_horizon": 6,
+  "historical_data": [
+    {
+      "date": "2022-01",
+      "quantity": 230.3
+    },
+    {
+      "date": "2022-02",
+      "quantity": 181.2
+    },
+    {
+      "date": "2022-03",
+      "quantity": 220.2
+    },
+    {
+      "date": "2022-04",
+      "quantity": 285.9
+    },
+    {
+      "date": "2022-05",
+      "quantity": 318.1
+    },
+    {
+      "date": "2022-06",
+      "quantity": 310.1
+    },
+    {
+      "date": "2022-07",
+      "quantity": 302.5
+    },
+    {
+      "date": "2022-08",
+      "quantity": 291.0
+    },
+    {
+      "date": "2022-09",
+      "quantity": 245.6
+    },
+    {
+      "date": "2022-10",
+      "quantity": 258.4
+    },
+    {
+      "date": "2022-11",
+      "quantity": 260.2
+    },
+    {
+      "date": "2022-12",
+      "quantity": 306.7
+    },
+    {
+      "date": "2023-01",
+      "quantity": 294.3
+    },
+    {
+      "date": "2023-02",
+      "quantity": 247.1
+    },
+    {
+      "date": "2023-03",
+      "quantity": 329.7
+    },
+    {
+      "date": "2023-04",
+      "quantity": 328.4
+    },
+    {
+      "date": "2023-05",
+      "quantity": 335.7
+    },
+    {
+      "date": "2023-06",
+      "quantity": 383.4
+    },
+    {
+      "date": "2023-07",
+      "quantity": 396.9
+    },
+    {
+      "date": "2023-08",
+      "quantity": 387.9
+    },
+    {
+      "date": "2023-09",
+      "quantity": 324.8
+    },
+    {
+      "date": "2023-10",
+      "quantity": 330.7
+    },
+    {
+      "date": "2023-11",
+      "quantity": 344.0
+    },
+    {
+      "date": "2023-12",
+      "quantity": 364.3
+    },
+    {
+      "date": "2024-01",
+      "quantity": 329.6
+    },
+    {
+      "date": "2024-02",
+      "quantity": 354.4
+    },
+    {
+      "date": "2024-03",
+      "quantity": 346.8
+    },
+    {
+      "date": "2024-04",
+      "quantity": 364.1
+    },
+    {
+      "date": "2024-05",
+      "quantity": 440.4
+    },
+    {
+      "date": "2024-06",
+      "quantity": 465.7
+    },
+    {
+      "date": "2024-07",
+      "quantity": 423.8
+    },
+    {
+      "date": "2024-08",
+      "quantity": 450.1
+    },
+    {
+      "date": "2024-09",
+      "quantity": 420.8
+    },
+    {
+      "date": "2024-10",
+      "quantity": 380.6
+    },
+    {
+      "date": "2024-11",
+      "quantity": 404.9
+    },
+    {
+      "date": "2024-12",
+      "quantity": 441.1
+    }
+  ]
+}
