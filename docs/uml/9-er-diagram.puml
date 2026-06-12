@@ -1,0 +1,590 @@
+@startuml Amdox-ERP-ERD
+title Amdox ERP — Entity Relationship Diagram (43 Entities)
+hide circle
+skinparam linetype ortho
+skinparam classFontSize 11
+skinparam classAttributeFontSize 10
+
+' ============================================================
+' F-01 — AUTH & MULTI-TENANCY
+' ============================================================
+entity Tenant {
+  * id : UUID <<PK>>
+  --
+  * name : String
+  * slug : String <<UK>>
+  domain : String <<UK>>
+  * plan : PlanType
+  * isActive : Boolean
+  logoUrl : String
+  settings : Json
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+entity User {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * email : String
+  * passwordHash : String
+  * firstName : String
+  * lastName : String
+  avatarUrl : String
+  phone : String
+  * isActive : Boolean
+  * mfaEnabled : Boolean
+  mfaSecret : String
+  lastLoginAt : DateTime
+  deletedAt : DateTime
+  --
+  UK(tenantId, email)
+}
+
+entity Role {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * name : String
+  description : String
+  * isSystem : Boolean
+  --
+  UK(tenantId, name)
+}
+
+entity Permission {
+  * id : UUID <<PK>>
+  --
+  * resource : String
+  * action : String
+  description : String
+  --
+  UK(resource, action)
+}
+
+entity UserRole {
+  * id : UUID <<PK>>
+  --
+  * userId : UUID <<FK>>
+  * roleId : UUID <<FK>>
+  --
+  UK(userId, roleId)
+}
+
+entity RolePermission {
+  * id : UUID <<PK>>
+  --
+  * roleId : UUID <<FK>>
+  * permissionId : UUID <<FK>>
+  --
+  UK(roleId, permissionId)
+}
+
+entity Session {
+  * id : UUID <<PK>>
+  --
+  * userId : UUID <<FK>>
+  * refreshToken : String <<UK>>
+  ipAddress : String
+  userAgent : String
+  * expiresAt : DateTime
+}
+
+' ============================================================
+' F-02 / F-03 — FINANCE (GL + AP/AR)
+' ============================================================
+entity ChartOfAccount {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * code : String
+  * name : String
+  * type : AccountType
+  subType : String
+  currency : String
+  parentId : UUID <<FK self>>
+  * isActive : Boolean
+  --
+  UK(tenantId, code)
+}
+
+entity AccountingPeriod {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * name : String
+  * startDate : DateTime
+  * endDate : DateTime
+  * status : PeriodStatus
+  closedAt : DateTime
+}
+
+entity JournalEntry {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * entryNumber : String
+  periodId : UUID <<FK>>
+  * date : DateTime
+  * status : JournalEntryStatus
+  * totalDebit : Decimal
+  * totalCredit : Decimal
+  * createdBy : UUID <<FK>>
+  --
+  UK(tenantId, entryNumber)
+}
+
+entity JournalEntryLine {
+  * id : UUID <<PK>>
+  --
+  * journalEntryId : UUID <<FK>>
+  debitAccountId : UUID <<FK>>
+  creditAccountId : UUID <<FK>>
+  * amount : Decimal
+  * lineNumber : Int
+}
+
+entity CurrencyRate {
+  * id : UUID <<PK>>
+  --
+  * fromCurrency : String
+  * toCurrency : String
+  * rate : Decimal
+  * date : DateTime
+  source : String
+  --
+  UK(from, to, date)
+}
+
+entity Invoice {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * type : InvoiceType
+  * invoiceNumber : String
+  vendorId : UUID <<FK>>
+  purchaseOrderId : UUID <<FK>>
+  approvedBy : UUID <<FK>>
+  * amount : Decimal
+  * totalAmount : Decimal
+  * status : InvoiceStatus
+  * matchingStatus : MatchingStatus
+  * dueDate : DateTime
+  --
+  UK(tenantId, invoiceNumber)
+}
+
+entity InvoiceLineItem {
+  * id : UUID <<PK>>
+  --
+  * invoiceId : UUID <<FK>>
+  * description : String
+  * quantity : Decimal
+  * unitPrice : Decimal
+  * totalPrice : Decimal
+}
+
+entity Payment {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * invoiceId : UUID <<FK>>
+  * amount : Decimal
+  * method : PaymentMethod
+  * status : PaymentStatus
+  * paymentDate : DateTime
+}
+
+' ============================================================
+' F-04 / F-05 — HR & PAYROLL
+' ============================================================
+entity Department {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * name : String
+  code : String
+  parentId : UUID <<FK self>>
+  --
+  UK(tenantId, name)
+}
+
+entity Employee {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * userId : UUID <<FK,UK>>
+  * employeeCode : String
+  departmentId : UUID <<FK>>
+  managerId : UUID <<FK self>>
+  * designation : String
+  * employmentType : EmploymentType
+  * status : EmployeeStatus
+  * joinDate : DateTime
+  * baseSalary : Decimal
+  --
+  UK(tenantId, employeeCode)
+}
+
+entity LeaveType {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * name : String
+  * daysAllowedPerYear : Int
+  * isPaid : Boolean
+  --
+  UK(tenantId, name)
+}
+
+entity LeaveRequest {
+  * id : UUID <<PK>>
+  --
+  * employeeId : UUID <<FK>>
+  * leaveTypeId : UUID <<FK>>
+  * startDate : DateTime
+  * endDate : DateTime
+  * totalDays : Decimal
+  * status : LeaveStatus
+}
+
+entity Attendance {
+  * id : UUID <<PK>>
+  --
+  * employeeId : UUID <<FK>>
+  * date : Date
+  clockIn : DateTime
+  clockOut : DateTime
+  * status : AttendanceStatus
+  --
+  UK(employeeId, date)
+}
+
+entity PayrollRun {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * period : String
+  * status : PayrollStatus
+  * totalNet : Decimal
+  --
+  UK(tenantId, period)
+}
+
+entity Payslip {
+  * id : UUID <<PK>>
+  --
+  * payrollRunId : UUID <<FK>>
+  * employeeId : UUID <<FK>>
+  * basicSalary : Decimal
+  * grossSalary : Decimal
+  * netSalary : Decimal
+  --
+  UK(payrollRunId, employeeId)
+}
+
+' ============================================================
+' F-06 / F-07 / F-08 — SUPPLY CHAIN, INVENTORY, AI
+' ============================================================
+entity Vendor {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * name : String
+  * code : String
+  email : String
+  paymentTerms : Int
+  * status : VendorStatus
+  --
+  UK(tenantId, code)
+}
+
+entity PurchaseOrder {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * poNumber : String
+  * vendorId : UUID <<FK>>
+  * status : POStatus
+  * totalAmount : Decimal
+  --
+  UK(tenantId, poNumber)
+}
+
+entity POLineItem {
+  * id : UUID <<PK>>
+  --
+  * purchaseOrderId : UUID <<FK>>
+  inventoryItemId : UUID <<FK>>
+  * quantity : Decimal
+  * unitPrice : Decimal
+  receivedQty : Decimal
+}
+
+entity GoodsReceipt {
+  * id : UUID <<PK>>
+  --
+  * purchaseOrderId : UUID <<FK>>
+  * receiptDate : DateTime
+}
+
+entity GoodsReceiptLine {
+  * id : UUID <<PK>>
+  --
+  * goodsReceiptId : UUID <<FK>>
+  inventoryItemId : UUID <<FK>>
+  * orderedQty : Decimal
+  * receivedQty : Decimal
+}
+
+entity InventoryItem {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * sku : String
+  * name : String
+  category : String
+  * costingMethod : CostingMethod
+  * unitCost : Decimal
+  * quantityOnHand : Decimal
+  reorderPoint : Decimal
+  preferredVendorId : UUID <<FK>>
+  --
+  UK(tenantId, sku)
+}
+
+entity StockMovement {
+  * id : UUID <<PK>>
+  --
+  * inventoryItemId : UUID <<FK>>
+  * type : MovementType
+  * quantity : Decimal
+}
+
+entity Forecast {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * inventoryItemId : UUID <<FK>>
+  * modelType : String
+  * forecastPeriod : String
+  * predictedQty : Decimal
+  mape : Decimal
+}
+
+' ============================================================
+' F-09 — PROJECT MANAGEMENT
+' ============================================================
+entity Project {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * name : String
+  * code : String
+  * status : ProjectStatus
+  budget : Decimal
+  managerId : UUID
+  --
+  UK(tenantId, code)
+}
+
+entity ProjectMilestone {
+  * id : UUID <<PK>>
+  --
+  * projectId : UUID <<FK>>
+  * name : String
+  * dueDate : DateTime
+  * status : MilestoneStatus
+}
+
+entity ProjectTask {
+  * id : UUID <<PK>>
+  --
+  * projectId : UUID <<FK>>
+  milestoneId : UUID <<FK>>
+  parentTaskId : UUID <<FK self>>
+  assignedToUserId : UUID <<FK>>
+  assignedToEmployeeId : UUID <<FK>>
+  * title : String
+  * status : TaskStatus
+  * priority : Priority
+}
+
+entity ProjectResource {
+  * id : UUID <<PK>>
+  --
+  * projectId : UUID <<FK>>
+  * employeeId : UUID <<FK>>
+  * allocation : Decimal
+  --
+  UK(projectId, employeeId)
+}
+
+' ============================================================
+' F-10 / F-11 / F-12 — NOTIFICATIONS, BI, AUDIT
+' ============================================================
+entity Dashboard {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * name : String
+  * createdBy : UUID
+  * isPublic : Boolean
+  layout : Json
+}
+
+entity Widget {
+  * id : UUID <<PK>>
+  --
+  * dashboardId : UUID <<FK>>
+  * title : String
+  * type : WidgetType
+  * dataSource : String
+}
+
+entity ScheduledReport {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * name : String
+  * reportType : String
+  * format : ReportFormat
+  * schedule : String
+}
+
+entity Notification {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * userId : UUID <<FK>>
+  * title : String
+  * type : NotificationType
+  * channel : NotificationChannel
+  * isRead : Boolean
+}
+
+entity NotificationPreference {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * userId : UUID <<FK>>
+  * event : String
+  --
+  UK(tenantId, userId, event)
+}
+
+entity Webhook {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * name : String
+  * url : String
+  events : String[]
+  * isActive : Boolean
+}
+
+entity WebhookDelivery {
+  * id : UUID <<PK>>
+  --
+  * webhookId : UUID <<FK>>
+  * event : String
+  * payload : Json
+  statusCode : Int
+}
+
+entity AuditLog {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  userId : UUID <<FK>>
+  * action : String
+  * resource : String
+  oldValues : Json
+  newValues : Json
+  hash : String
+}
+
+entity SyncQueue {
+  * id : UUID <<PK>>
+  --
+  * tenantId : UUID <<FK>>
+  * userId : UUID
+  * operation : String
+  * status : SyncStatus
+}
+
+' ============================================================
+' RELATIONSHIPS (crow's foot)
+' ============================================================
+' F-01 Auth
+Tenant ||--o{ User
+Tenant ||--o{ Role
+User ||--o{ UserRole
+Role ||--o{ UserRole
+Role ||--o{ RolePermission
+Permission ||--o{ RolePermission
+User ||--o{ Session
+
+' F-02/03 Finance
+Tenant ||--o{ ChartOfAccount
+ChartOfAccount ||--o{ ChartOfAccount
+Tenant ||--o{ AccountingPeriod
+Tenant ||--o{ JournalEntry
+AccountingPeriod ||--o{ JournalEntry
+User ||--o{ JournalEntry
+JournalEntry ||--o{ JournalEntryLine
+ChartOfAccount ||--o{ JournalEntryLine
+Tenant ||--o{ Invoice
+Invoice ||--o{ InvoiceLineItem
+Invoice ||--o{ Payment
+Vendor ||--o{ Invoice
+
+' F-04/05 HR
+Tenant ||--o{ Department
+Department ||--o{ Department
+Tenant ||--o{ Employee
+User ||--|| Employee
+Department ||--o{ Employee
+Employee ||--o{ Employee
+Employee ||--o{ LeaveRequest
+LeaveType ||--o{ LeaveRequest
+Employee ||--o{ Attendance
+Tenant ||--o{ PayrollRun
+PayrollRun ||--o{ Payslip
+Employee ||--o{ Payslip
+
+' F-06/07/08 Supply
+Tenant ||--o{ Vendor
+Tenant ||--o{ PurchaseOrder
+Vendor ||--o{ PurchaseOrder
+PurchaseOrder ||--o{ POLineItem
+PurchaseOrder ||--o{ GoodsReceipt
+GoodsReceipt ||--o{ GoodsReceiptLine
+Tenant ||--o{ InventoryItem
+Vendor ||--o{ InventoryItem
+InventoryItem ||--o{ POLineItem
+InventoryItem ||--o{ StockMovement
+InventoryItem ||--o{ Forecast
+Tenant ||--o{ Forecast
+
+' F-09 Projects
+Tenant ||--o{ Project
+Project ||--o{ ProjectMilestone
+Project ||--o{ ProjectTask
+ProjectMilestone ||--o{ ProjectTask
+ProjectTask ||--o{ ProjectTask
+Project ||--o{ ProjectResource
+Employee ||--o{ ProjectResource
+
+' F-10/11/12 BI/Notif/Audit
+Tenant ||--o{ Dashboard
+Dashboard ||--o{ Widget
+Tenant ||--o{ ScheduledReport
+Tenant ||--o{ Notification
+User ||--o{ Notification
+User ||--o{ NotificationPreference
+Tenant ||--o{ Webhook
+Webhook ||--o{ WebhookDelivery
+Tenant ||--o{ AuditLog
+User ||--o{ AuditLog
+@enduml
