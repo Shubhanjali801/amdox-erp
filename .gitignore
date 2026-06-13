@@ -51,8 +51,13 @@ amdox.erp.zip
 dependencies.txt
 ream.md
 
-/ml-service
+
 # .github
 .vscode
 .venv
 /postman
+
+/ml-service
+ml-service/README.md
+ml-service/.env
+ml-servive/save_models
