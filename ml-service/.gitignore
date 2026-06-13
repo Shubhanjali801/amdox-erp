@@ -1,0 +1,32 @@
+# ─── Python ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# ─── Virtual environment───────────
+.venv/
+venv/
+env/
+ENV/
+
+# ─── Trained models & generated artifacts ───────────────
+# Commit the CODE that builds models, not the binary outputs
+saved_models/*.pt
+saved_models/*.pkl
+saved_models/*.h5
+saved_models/*.keras
+
+# ─── Generated training data & reports ──────────────────
+training/sample_data/
+training/results/
+
+# ─── Env / secrets ───────────────────────────────────────
+.env
+.env.*
+
+# ─── Misc ────────────────────────────────────────────────
+*.log
+.pytest_cache/
+.ipynb_checkpoints/
