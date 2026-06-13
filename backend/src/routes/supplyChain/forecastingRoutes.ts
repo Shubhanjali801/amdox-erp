@@ -1,11 +1,18 @@
 import { Router } from 'express';
 import * as ctrl from '../../controllers/supplyChain/forecastingController';
-import { authenticate } from '../../middleware/auth.middleware';
+import { authenticate, requirePermission } from '../../middleware/auth.middleware';
+
 const r = Router();
+
 r.use(authenticate);
-r.get('/',     ctrl.getAll);
-r.get('/:id',  ctrl.getById);
-r.post('/',    ctrl.create);
-r.put('/:id',  ctrl.update);
-r.delete('/:id', ctrl.remove);
+
+// Health check for the ML microservice
+r.get('/health/ml', ctrl.mlHealth);
+
+r.get('/',       requirePermission('supply:read'),  ctrl.getAll);
+r.get('/:id',    requirePermission('supply:read'),  ctrl.getById);
+r.post('/',      requirePermission('supply:write'), ctrl.create);   // generate forecast (calls ML)
+r.put('/:id',    requirePermission('supply:write'), ctrl.update);
+r.delete('/:id', requirePermission('supply:write'), ctrl.remove);
+
 export default r;

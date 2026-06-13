@@ -1,5 +1,5 @@
 import { Queue, Worker, Job } from 'bullmq';
-import { redisClient } from '../config/redis';
+import redisClient from '../config/redis';
 
 // ML forecasting trigger — M5
 const QUEUE_NAME = 'forecasting';

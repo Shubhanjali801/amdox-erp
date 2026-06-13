@@ -2,8 +2,10 @@ import express from 'express'
 import helmet from 'helmet'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import swaggerUi from 'swagger-ui-express'
 
 import { env } from './config/env'
+import { swaggerSpec } from './config/swagger'
 import { corsOptions } from './config/cors'
 import { connectDatabase } from './config/database'
 import { connectRedis } from './config/redis'
@@ -27,6 +29,9 @@ app.use(cookieParser())
 
 // ─── Request Logging ─────────────────────────────────────────────────────────
 app.use(requestLogger)
+
+// ─── Swagger API Docs ────────────────────────────────────────────────────────
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 // ─── API Routes ──────────────────────────────────────────────────────────────
 app.use('/api/v1', router)
