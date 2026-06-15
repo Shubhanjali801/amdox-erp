@@ -51,5 +51,18 @@ export const updateApSchema = Joi.object({
   status:  Joi.string().valid('DRAFT', 'PENDING', 'APPROVED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'CANCELLED').optional(),
 }).min(1).messages({ 'object.min': 'At least one field is required to update' });
 
+export const createArSchema = Joi.object({
+  invoiceNumber: Joi.string().trim().min(1).max(50).required(),
+  customerId:    Joi.string().optional().allow(null, ''),
+  currency:      Joi.string().trim().uppercase().length(3).optional(),
+  issueDate:     Joi.date().required(),
+  dueDate:       Joi.date().required(),
+  notes:         Joi.string().trim().max(500).optional().allow(''),
+  lineItems:     Joi.array().items(lineItemSchema).min(1).required()
+    .messages({ 'array.min': 'At least one line item is required' }),
+});
+
+export const updateArSchema = updateApSchema;
+
 // kept for backwards-compat
 export const createInvoiceSchema = createApSchema;
