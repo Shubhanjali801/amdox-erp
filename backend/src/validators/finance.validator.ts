@@ -64,5 +64,18 @@ export const createArSchema = Joi.object({
 
 export const updateArSchema = updateApSchema;
 
+// ─── Payments ─────────────────────────────────────────────
+const PAYMENT_METHODS = ['BANK_TRANSFER', 'CHEQUE', 'CARD', 'CASH', 'CRYPTO'];
+
+export const createPaymentSchema = Joi.object({
+  invoiceId:   Joi.string().uuid().required(),
+  amount:      Joi.number().positive().required(),
+  method:      Joi.string().uppercase().valid(...PAYMENT_METHODS).required(),
+  reference:   Joi.string().trim().max(100).optional().allow(''),
+  paymentDate: Joi.date().optional(),
+}).messages({
+  'any.only': 'method must be one of: BANK_TRANSFER, CHEQUE, CARD, CASH, CRYPTO',
+});
+
 // kept for backwards-compat
 export const createInvoiceSchema = createApSchema;
