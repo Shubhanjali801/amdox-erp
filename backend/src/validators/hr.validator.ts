@@ -36,3 +36,18 @@ export const updateEmployeeSchema = Joi.object({
   baseSalary:     Joi.number().min(0).optional(),
   payFrequency:   Joi.string().uppercase().valid(...PAY_FREQUENCIES).optional(),
 }).min(1).messages({ 'object.min': 'At least one field is required to update' });
+
+// ─── Departments ──────────────────────────────────────────
+export const createDeptSchema = Joi.object({
+  name:      Joi.string().trim().min(2).max(100).required(),
+  code:      Joi.string().trim().max(20).optional().allow(''),
+  parentId:  Joi.string().uuid().optional().allow(null, ''),
+  managerId: Joi.string().uuid().optional().allow(null, ''),
+});
+
+export const updateDeptSchema = Joi.object({
+  name:      Joi.string().trim().min(2).max(100).optional(),
+  code:      Joi.string().trim().max(20).optional().allow(''),
+  parentId:  Joi.string().uuid().optional().allow(null, ''),
+  managerId: Joi.string().uuid().optional().allow(null, ''),
+}).min(1).messages({ 'object.min': 'At least one field is required to update' });
