@@ -1,7 +1,50 @@
 import { Request, Response, NextFunction } from 'express';
-import { sendSuccess } from '../../utils/response';
-export const getAll  = async (_req: Request, res: Response, _n: NextFunction) => sendSuccess(res, [], 'integrationController.getAll — M2');
-export const getById = async (_req: Request, res: Response, _n: NextFunction) => sendSuccess(res, {}, 'integrationController.getById — M2');
-export const create  = async (_req: Request, res: Response, _n: NextFunction) => sendSuccess(res, {}, 'integrationController.create — M2');
-export const update  = async (_req: Request, res: Response, _n: NextFunction) => sendSuccess(res, {}, 'integrationController.update — M2');
-export const remove  = async (_req: Request, res: Response, _n: NextFunction) => sendSuccess(res, {}, 'integrationController.remove — M2');
+import { integrationService } from '../../services/settings/integrationService';
+import { sendSuccess, sendError } from '../../utils/response';
+
+const tenantOf = (req: Request) => (req as any).user?.tenantId as string;
+// :id here is the integration key (e.g. "slack", "stripe", "quickbooks")
+
+export const getAll = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const r = await integrationService.list(tenantOf(req));
+    return sendSuccess(res, r, 'Integrations fetched');
+  } catch (err: any) {
+    if (err.message === 'TENANT_NOT_FOUND') return sendError(res, 'Tenant not found', 404);
+    next(err);
+  }
+};
+
+export const getById = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const r = await integrationService.get(tenantOf(req), req.params.id as string);
+    return sendSuccess(res, r, 'Integration fetched');
+  } catch (err: any) {
+    if (err.message === 'INTEGRATION_NOT_FOUND') return sendError(res, 'Integration not found', 404);
+    next(err);
+  }
+};
+
+export const create = async (_req: Request, res: Response) =>
+  sendError(res, 'Use PUT /integrations/:key to add or update an integration', 405);
+
+// PUT /integrations/:id  (id = integration key) → upsert
+export const update = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const r = await integrationService.upsert(tenantOf(req), req.params.id as string, req.body);
+    return sendSuccess(res, r, 'Integration saved');
+  } catch (err: any) {
+    if (err.message === 'TENANT_NOT_FOUND') return sendError(res, 'Tenant not found', 404);
+    next(err);
+  }
+};
+
+export const remove = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await integrationService.remove(tenantOf(req), req.params.id as string);
+    return sendSuccess(res, {}, 'Integration removed');
+  } catch (err: any) {
+    if (err.message === 'INTEGRATION_NOT_FOUND') return sendError(res, 'Integration not found', 404);
+    next(err);
+  }
+};
