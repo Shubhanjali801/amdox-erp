@@ -69,10 +69,12 @@ router.use('/hr/payroll',      payrollRoutes);
 router.use('/hr/organisation', organisationRoutes);
 
 // ─── F-07: Project Management ───────────────────────────────────────────────
-router.use('/projects',           projectRoutes);
+// NOTE: specific sub-paths must be registered BEFORE '/projects'
+// otherwise '/projects/tasks' is swallowed by the '/:id' route.
 router.use('/projects/tasks',     taskRoutes);
 router.use('/projects/resources', resourceRoutes);
 router.use('/projects/budget',    budgetRoutes);
+router.use('/projects',           projectRoutes);
 
 // ─── F-05: Supply Chain & Inventory ─────────────────────────────────────────
 router.use('/supply/pos',       poRoutes);
