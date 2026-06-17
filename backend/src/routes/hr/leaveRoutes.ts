@@ -1,11 +1,20 @@
 import { Router } from 'express';
 import * as ctrl from '../../controllers/hr/leaveController';
-import { authenticate } from '../../middleware/auth.middleware';
+import { authenticate, requirePermission } from '../../middleware/auth.middleware';
+
 const r = Router();
 r.use(authenticate);
-r.get('/',     ctrl.getAll);
-r.get('/:id',  ctrl.getById);
-r.post('/',    ctrl.create);
-r.put('/:id',  ctrl.update);
-r.delete('/:id', ctrl.remove);
+
+// Leave types
+r.get('/types',  requirePermission('hr:read'),  ctrl.listTypes);
+r.post('/types', requirePermission('hr:write'), ctrl.createType);
+
+// Leave requests
+r.get('/',            requirePermission('hr:read'),    ctrl.getAll);
+r.get('/:id',         requirePermission('hr:read'),    ctrl.getById);
+r.post('/',           requirePermission('hr:write'),   ctrl.create);
+r.post('/:id/approve',requirePermission('hr:approve'), ctrl.approve);
+r.post('/:id/reject', requirePermission('hr:approve'), ctrl.reject);
+r.delete('/:id',      requirePermission('hr:write'),   ctrl.remove);
+
 export default r;

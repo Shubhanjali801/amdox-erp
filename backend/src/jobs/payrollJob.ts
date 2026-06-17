@@ -1,5 +1,5 @@
 import { Queue, Worker, Job } from 'bullmq';
-import { redisClient } from '../config/redis';
+import redisClient from '../config/redis';
 
 // Payroll batch processing — M4
 const QUEUE_NAME = 'payroll';
