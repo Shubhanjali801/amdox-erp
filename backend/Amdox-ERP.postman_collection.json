@@ -1,0 +1,4410 @@
+{
+  "info": {
+    "name": "Amdox ERP — Backend",
+    "description": "AMX-ERP-2026 — Auth, Users, Tenants, Finance (Ledger/AP/AR/Currency/Payments), HR (Employees/Departments/Attendance/Leave/Payroll), Supply/ML Forecasting. Run Auth → Login first to capture TOKEN.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:5000/api/v1"
+    },
+    {
+      "key": "TOKEN",
+      "value": ""
+    },
+    {
+      "key": "USER_ID",
+      "value": ""
+    },
+    {
+      "key": "NEW_USER_ID",
+      "value": ""
+    },
+    {
+      "key": "ACCOUNT_ID",
+      "value": ""
+    },
+    {
+      "key": "AP_ID",
+      "value": ""
+    },
+    {
+      "key": "AR_ID",
+      "value": ""
+    },
+    {
+      "key": "PAYMENT_ID",
+      "value": ""
+    },
+    {
+      "key": "EMPLOYEE_ID",
+      "value": ""
+    },
+    {
+      "key": "DEPT_ID",
+      "value": ""
+    },
+    {
+      "key": "LEAVE_TYPE_ID",
+      "value": ""
+    },
+    {
+      "key": "LEAVE_ID",
+      "value": ""
+    },
+    {
+      "key": "ATTENDANCE_ID",
+      "value": ""
+    },
+    {
+      "key": "PAYROLL_ID",
+      "value": ""
+    },
+    {
+      "key": "INVENTORY_ITEM_ID",
+      "value": ""
+    },
+    {
+      "key": "VENDOR_ID",
+      "value": ""
+    },
+    {
+      "key": "ITEM_ID",
+      "value": ""
+    },
+    {
+      "key": "PO_ID",
+      "value": ""
+    },
+    {
+      "key": "PO_LINE_ID",
+      "value": ""
+    },
+    {
+      "key": "PROJECT_ID",
+      "value": ""
+    },
+    {
+      "key": "MILESTONE_ID",
+      "value": ""
+    },
+    {
+      "key": "TASK_ID",
+      "value": ""
+    },
+    {
+      "key": "RESOURCE_ID",
+      "value": ""
+    },
+    {
+      "key": "NOTIFICATION_ID",
+      "value": ""
+    },
+    {
+      "key": "WEBHOOK_ID",
+      "value": ""
+    },
+    {
+      "key": "PERMISSION_ID",
+      "value": ""
+    },
+    {
+      "key": "ROLE_ID",
+      "value": ""
+    },
+    {
+      "key": "DASHBOARD_ID",
+      "value": ""
+    },
+    {
+      "key": "WIDGET_ID",
+      "value": ""
+    },
+    {
+      "key": "REPORT_ID",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1 - Auth",
+      "item": [
+        {
+          "name": "Register (company + admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.user) pm.collectionVariables.set('USER_ID', res.data.user.id);",
+                  "console.log('Registered:', res.message);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Shubhanjali\",\n  \"lastName\": \"Sharma\",\n  \"email\": \"admin@amdox.com\",\n  \"password\": \"Admin@123\",\n  \"companyName\": \"Amdox Technologies\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/auth/register",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login (saves TOKEN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.accessToken) { pm.collectionVariables.set('TOKEN', res.data.accessToken); console.log('TOKEN saved'); }",
+                  "if (res.data && res.data.user) pm.collectionVariables.set('USER_ID', res.data.user.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@amdox.com\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/auth/login",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login - Wrong Password (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@amdox.com\",\n  \"password\": \"wrongpass\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/auth/login",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Me (protected)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/auth/me",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Me - No Token (401)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/auth/me",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 - Users",
+      "item": [
+        {
+          "name": "Create User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) pm.collectionVariables.set('NEW_USER_ID', res.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Rahul\",\n  \"lastName\": \"Verma\",\n  \"email\": \"rahul@amdox.com\",\n  \"password\": \"Rahul@123\",\n  \"roleNames\": [\"manager\"]\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/users",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/users?page=1&limit=10",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/users/{{NEW_USER_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "users",
+                "{{NEW_USER_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Rahul Updated\",\n  \"roleNames\": [\"viewer\"]\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/users/{{NEW_USER_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "users",
+                "{{NEW_USER_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/users/{{NEW_USER_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "users",
+                "{{NEW_USER_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 - Tenants",
+      "item": [
+        {
+          "name": "Get Tenant",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/tenants",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "tenants"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Tenant",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Amdox Technologies Pvt Ltd\",\n  \"settings\": { \"theme\": \"dark\", \"currency\": \"INR\" }\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/tenants",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "tenants"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 - Finance: Ledger",
+      "item": [
+        {
+          "name": "Create Account (saves ACCOUNT_ID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) pm.collectionVariables.set('ACCOUNT_ID', res.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"1001\",\n  \"name\": \"Cash in Hand\",\n  \"type\": \"ASSET\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ledger",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ledger"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Accounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ledger",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ledger"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Type (ASSET)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ledger?type=ASSET",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ledger"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "ASSET"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Account by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ledger/{{ACCOUNT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ledger",
+                "{{ACCOUNT_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Account",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cash & Bank\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ledger/{{ACCOUNT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ledger",
+                "{{ACCOUNT_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ledger/{{ACCOUNT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ledger",
+                "{{ACCOUNT_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 - Finance: AP (Vendor Invoices)",
+      "item": [
+        {
+          "name": "Create AP Invoice (saves AP_ID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) pm.collectionVariables.set('AP_ID', res.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoiceNumber\": \"BILL-2026-001\",\n  \"issueDate\": \"2026-06-01\",\n  \"dueDate\": \"2026-06-30\",\n  \"lineItems\": [\n    { \"description\": \"Laptops\", \"quantity\": 5, \"unitPrice\": 50000, \"taxRate\": 18 },\n    { \"description\": \"Mouse\", \"quantity\": 10, \"unitPrice\": 500, \"taxRate\": 18 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ap",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ap"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List AP Invoices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ap",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ap"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get AP by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ap/{{AP_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ap",
+                "{{AP_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve AP Invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ap/{{AP_ID}}/approve",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ap",
+                "{{AP_ID}}",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete AP Invoice",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ap/{{AP_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ap",
+                "{{AP_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6 - Finance: AR (Customer Invoices)",
+      "item": [
+        {
+          "name": "Create AR Invoice (saves AR_ID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) pm.collectionVariables.set('AR_ID', res.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoiceNumber\": \"INV-2026-001\",\n  \"issueDate\": \"2026-06-01\",\n  \"dueDate\": \"2026-06-30\",\n  \"lineItems\": [\n    { \"description\": \"Consulting Service\", \"quantity\": 1, \"unitPrice\": 100000, \"taxRate\": 18 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ar",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ar"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List AR Invoices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ar",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ar"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get AR by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ar/{{AR_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ar",
+                "{{AR_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve AR Invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/ar/{{AR_ID}}/approve",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "ar",
+                "{{AR_ID}}",
+                "approve"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7 - Finance: Currency",
+      "item": [
+        {
+          "name": "Add Rate USD->INR",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromCurrency\": \"USD\",\n  \"toCurrency\": \"INR\",\n  \"rate\": 83.5\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/finance/currency",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "currency"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Convert 100 USD -> INR",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/currency/convert?from=USD&to=INR&amount=100",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "currency",
+                "convert"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "USD"
+                },
+                {
+                  "key": "to",
+                  "value": "INR"
+                },
+                {
+                  "key": "amount",
+                  "value": "100"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Rates",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/currency",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "currency"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8 - Finance: Payments",
+      "item": [
+        {
+          "name": "Record Payment (against AR_ID, saves PAYMENT_ID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.payment) pm.collectionVariables.set('PAYMENT_ID', res.data.payment.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoiceId\": \"{{AR_ID}}\",\n  \"amount\": 50000,\n  \"method\": \"BANK_TRANSFER\",\n  \"reference\": \"TXN-001\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/finance/payments",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "payments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Payments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/payments",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "payments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Payment by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/finance/payments/{{PAYMENT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "finance",
+                "payments",
+                "{{PAYMENT_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9 - HR: Departments",
+      "item": [
+        {
+          "name": "Create Department (saves DEPT_ID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) pm.collectionVariables.set('DEPT_ID', res.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Engineering\",\n  \"code\": \"ENG\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/hr/organisation",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "organisation"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Sub-Department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Backend Team\",\n  \"code\": \"ENG-BE\",\n  \"parentId\": \"{{DEPT_ID}}\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/hr/organisation",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "organisation"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Departments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/hr/organisation",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "organisation"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Department (with children)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/hr/organisation/{{DEPT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "organisation",
+                "{{DEPT_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - HR: Employees",
+      "item": [
+        {
+          "name": "Onboard Employee (saves EMPLOYEE_ID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) pm.collectionVariables.set('EMPLOYEE_ID', res.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Amit\",\n  \"lastName\": \"Kumar\",\n  \"email\": \"amit.emp@amdox.com\",\n  \"password\": \"Amit@123\",\n  \"employeeCode\": \"EMP-001\",\n  \"designation\": \"Software Engineer\",\n  \"departmentId\": \"{{DEPT_ID}}\",\n  \"joinDate\": \"2026-01-15\",\n  \"baseSalary\": 80000\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/hr/employees",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "employees"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Employees",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/hr/employees",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "employees"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Employee by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/hr/employees/{{EMPLOYEE_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "employees",
+                "{{EMPLOYEE_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Employee",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"designation\": \"Senior Engineer\",\n  \"baseSalary\": 100000\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/hr/employees/{{EMPLOYEE_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "employees",
+                "{{EMPLOYEE_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - HR: Attendance",
+      "item": [
+        {
+          "name": "Mark Attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": \"{{EMPLOYEE_ID}}\",\n  \"date\": \"2026-06-15\",\n  \"clockIn\": \"2026-06-15T09:00:00Z\",\n  \"clockOut\": \"2026-06-15T18:30:00Z\",\n  \"status\": \"PRESENT\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/hr/attendance",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "attendance"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Attendance (by employee)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/hr/attendance?employeeId={{EMPLOYEE_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "attendance"
+              ],
+              "query": [
+                {
+                  "key": "employeeId",
+                  "value": "{{EMPLOYEE_ID}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - HR: Leave",
+      "item": [
+        {
+          "name": "Create Leave Type (saves LEAVE_TYPE_ID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) pm.collectionVariables.set('LEAVE_TYPE_ID', res.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Annual Leave\",\n  \"daysAllowedPerYear\": 21,\n  \"isPaid\": true\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/hr/leave/types",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "leave",
+                "types"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Leave Types",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/hr/leave/types",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "leave",
+                "types"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Submit Leave Request (saves LEAVE_ID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) pm.collectionVariables.set('LEAVE_ID', res.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": \"{{EMPLOYEE_ID}}\",\n  \"leaveTypeId\": \"{{LEAVE_TYPE_ID}}\",\n  \"startDate\": \"2026-07-01\",\n  \"endDate\": \"2026-07-05\",\n  \"reason\": \"Vacation\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/hr/leave",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "leave"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Leave Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/hr/leave",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "leave"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve Leave",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/hr/leave/{{LEAVE_ID}}/approve",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "leave",
+                "{{LEAVE_ID}}",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject Leave",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Insufficient coverage\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/hr/leave/{{LEAVE_ID}}/reject",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "leave",
+                "{{LEAVE_ID}}",
+                "reject"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 - HR: Payroll",
+      "item": [
+        {
+          "name": "Run Payroll (saves PAYROLL_ID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) pm.collectionVariables.set('PAYROLL_ID', res.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"2026-06\",\n  \"currency\": \"INR\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/hr/payroll",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "payroll"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Payroll Runs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/hr/payroll",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "payroll"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Payroll Run (with payslips)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/hr/payroll/{{PAYROLL_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "hr",
+                "payroll",
+                "{{PAYROLL_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 - Supply: Vendors",
+      "item": [
+        {
+          "name": "Create Vendor (saves VENDOR_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/vendors",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "vendors"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"VEND-001\",\n  \"name\": \"Acme Supplies\",\n  \"email\": \"sales@acme.com\",\n  \"paymentTerms\": 30,\n  \"currency\": \"USD\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r = pm.response.json();",
+                  "if (r.data && r.data.id) { pm.collectionVariables.set('VENDOR_ID', r.data.id); }",
+                  "pm.test('vendor created', () => pm.response.code === 201);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Vendors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/vendors",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "vendors"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Vendor",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/vendors/{{VENDOR_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "vendors",
+                "{{VENDOR_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Vendor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/vendors/{{VENDOR_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "vendors",
+                "{{VENDOR_ID}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+1-555-1234\",\n  \"rating\": 4.5,\n  \"status\": \"ACTIVE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Vendor",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/vendors/{{VENDOR_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "vendors",
+                "{{VENDOR_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 - Supply: Inventory",
+      "item": [
+        {
+          "name": "Create Item (saves ITEM_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/inventory",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "inventory"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"WIDGET-100\",\n  \"name\": \"Steel Widget\",\n  \"category\": \"Parts\",\n  \"unitCost\": 50,\n  \"sellingPrice\": 90,\n  \"quantityOnHand\": 0,\n  \"reorderPoint\": 20,\n  \"reorderQty\": 100\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r = pm.response.json();",
+                  "if (r.data && r.data.id) { pm.collectionVariables.set('ITEM_ID', r.data.id); }",
+                  "pm.test('item created', () => pm.response.code === 201);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Inventory (auto-set INVENTORY_ITEM_ID for forecast)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/inventory",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "inventory"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r = pm.response.json();",
+                  "var demo = (r.data || []).find(i => i.sku === 'FORECAST-DEMO-001');",
+                  "if (demo) { pm.collectionVariables.set('INVENTORY_ITEM_ID', demo.id); }",
+                  "var any = (r.data || [])[0];",
+                  "if (any && !pm.collectionVariables.get('ITEM_ID')) { pm.collectionVariables.set('ITEM_ID', any.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Item",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/inventory/{{ITEM_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "inventory",
+                "{{ITEM_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/inventory/{{ITEM_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "inventory",
+                "{{ITEM_ID}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sellingPrice\": 95,\n  \"reorderPoint\": 25\n}"
+            }
+          }
+        },
+        {
+          "name": "Stock Movement IN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/inventory/{{ITEM_ID}}/movements",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "inventory",
+                "{{ITEM_ID}}",
+                "movements"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"IN\",\n  \"quantity\": 50,\n  \"reference\": \"MANUAL-ADJ\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Stock Movement OUT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/inventory/{{ITEM_ID}}/movements",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "inventory",
+                "{{ITEM_ID}}",
+                "movements"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"OUT\",\n  \"quantity\": 10,\n  \"reference\": \"SALE-001\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Movements",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/inventory/{{ITEM_ID}}/movements",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "inventory",
+                "{{ITEM_ID}}",
+                "movements"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Item (deactivate)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/inventory/{{ITEM_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "inventory",
+                "{{ITEM_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 - Supply: Purchase Orders",
+      "item": [
+        {
+          "name": "Create PO (saves PO_ID + PO_LINE_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/pos",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "pos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"poNumber\": \"PO-1001\",\n  \"vendorId\": \"{{VENDOR_ID}}\",\n  \"taxRate\": 10,\n  \"expectedDelivery\": \"2026-07-01\",\n  \"lineItems\": [\n    {\n      \"inventoryItemId\": \"{{ITEM_ID}}\",\n      \"description\": \"Steel Widget\",\n      \"quantity\": 100,\n      \"unitPrice\": 50\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r = pm.response.json();",
+                  "if (r.data && r.data.id) { pm.collectionVariables.set('PO_ID', r.data.id); }",
+                  "if (r.data && r.data.lineItems && r.data.lineItems[0]) { pm.collectionVariables.set('PO_LINE_ID', r.data.lineItems[0].id); }",
+                  "pm.test('PO created', () => pm.response.code === 201);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Purchase Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/pos",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "pos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Purchase Order",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/pos/{{PO_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "pos",
+                "{{PO_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Send PO (DRAFT -> SENT)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/pos/{{PO_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "pos",
+                "{{PO_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Receive Goods (GRN + stock IN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/pos/{{PO_ID}}/receive",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "pos",
+                "{{PO_ID}}",
+                "receive"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lines\": [\n    {\n      \"lineItemId\": \"{{PO_LINE_ID}}\",\n      \"receivedQty\": 100\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Cancel PO",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/pos/{{PO_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "pos",
+                "{{PO_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 - Supply: ML Forecast",
+      "item": [
+        {
+          "name": "ML Service Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/forecasts/health/ml",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "forecasts",
+                "health",
+                "ml"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Forecast (needs inventory + ML service running)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inventoryItemId\": \"{{INVENTORY_ITEM_ID}}\",\n  \"modelType\": \"lstm\",\n  \"horizon\": 6\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/supply/forecasts",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "forecasts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Forecasts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/supply/forecasts",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "supply",
+                "forecasts"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 - Projects",
+      "item": [
+        {
+          "name": "Create Project (saves PROJECT_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"PRJ-001\",\n  \"name\": \"ERP Rollout\",\n  \"budget\": 100000,\n  \"clientName\": \"Acme\",\n  \"startDate\": \"2026-06-01\",\n  \"endDate\": \"2026-12-31\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data.id){pm.collectionVariables.set('PROJECT_ID',r.data.id);}",
+                  "pm.test('project created',()=>pm.response.code===201);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Projects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Project",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/{{PROJECT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "{{PROJECT_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Project",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/{{PROJECT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "{{PROJECT_ID}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\",\n  \"description\": \"Kickoff done\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Add Milestone (saves MILESTONE_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/{{PROJECT_ID}}/milestones",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "{{PROJECT_ID}}",
+                "milestones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Phase 1 Complete\",\n  \"dueDate\": \"2026-08-01\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data.id){pm.collectionVariables.set('MILESTONE_ID',r.data.id);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Milestones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/{{PROJECT_ID}}/milestones",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "{{PROJECT_ID}}",
+                "milestones"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Project",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/{{PROJECT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "{{PROJECT_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 - Project Tasks",
+      "item": [
+        {
+          "name": "Create Task (saves TASK_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/tasks",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "tasks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": \"{{PROJECT_ID}}\",\n  \"title\": \"Set up database\",\n  \"priority\": \"HIGH\",\n  \"estimatedHours\": 40\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data.id){pm.collectionVariables.set('TASK_ID',r.data.id);}",
+                  "pm.test('task created',()=>pm.response.code===201);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Tasks (filter by project)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/tasks",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "tasks"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Task",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/tasks/{{TASK_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "tasks",
+                "{{TASK_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Complete Task (auto completedAt)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/tasks/{{TASK_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "tasks",
+                "{{TASK_ID}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\",\n  \"actualHours\": 38\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/tasks/{{TASK_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "tasks",
+                "{{TASK_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 - Project Resources",
+      "item": [
+        {
+          "name": "Allocate Employee (saves RESOURCE_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/resources",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "resources"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": \"{{PROJECT_ID}}\",\n  \"employeeId\": \"{{EMPLOYEE_ID}}\",\n  \"role\": \"Developer\",\n  \"allocation\": 50\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data.id){pm.collectionVariables.set('RESOURCE_ID',r.data.id);}",
+                  "pm.test('allocated',()=>pm.response.code===201);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Allocations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/resources",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "resources"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Allocation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/resources/{{RESOURCE_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "resources",
+                "{{RESOURCE_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Allocation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/resources/{{RESOURCE_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "resources",
+                "{{RESOURCE_ID}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"allocation\": 75\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove Allocation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/resources/{{RESOURCE_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "resources",
+                "{{RESOURCE_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 - Project Budget",
+      "item": [
+        {
+          "name": "Budget Summary (all projects)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/budget",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "budget"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Project Budget Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/budget/{{PROJECT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "budget",
+                "{{PROJECT_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Actual Cost",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/budget/{{PROJECT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "budget",
+                "{{PROJECT_ID}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"addCost\": 15000\n}"
+            }
+          }
+        },
+        {
+          "name": "Set Budget",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/projects/budget/{{PROJECT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "projects",
+                "budget",
+                "{{PROJECT_ID}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"budget\": 120000\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "22 - Notifications",
+      "item": [
+        {
+          "name": "Create Notification (saves NOTIFICATION_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/notifications",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Welcome\",\n  \"message\": \"Your ERP account is ready\",\n  \"type\": \"INFO\",\n  \"event\": \"system.welcome\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data.id){pm.collectionVariables.set('NOTIFICATION_ID',r.data.id);}",
+                  "pm.test('created',()=>pm.response.code===201);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/notifications",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/notifications/unread/count",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "notifications",
+                "unread",
+                "count"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Notification",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/notifications/{{NOTIFICATION_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "notifications",
+                "{{NOTIFICATION_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/notifications/{{NOTIFICATION_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "notifications",
+                "{{NOTIFICATION_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark All Read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/notifications/read-all",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "notifications",
+                "read-all"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/notifications/{{NOTIFICATION_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "notifications",
+                "{{NOTIFICATION_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "23 - Webhooks",
+      "item": [
+        {
+          "name": "Create Webhook (saves WEBHOOK_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/webhooks",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "webhooks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Slack Alerts\",\n  \"url\": \"https://httpbin.org/post\",\n  \"events\": [\n    \"invoice.paid\",\n    \"po.received\"\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data.id){pm.collectionVariables.set('WEBHOOK_ID',r.data.id);}",
+                  "pm.test('created',()=>pm.response.code===201);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Webhooks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/webhooks",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "webhooks"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Webhook (with deliveries)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/webhooks/{{WEBHOOK_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "webhooks",
+                "{{WEBHOOK_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Test Delivery",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/webhooks/{{WEBHOOK_ID}}/test",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "webhooks",
+                "{{WEBHOOK_ID}}",
+                "test"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Webhook",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/webhooks/{{WEBHOOK_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "webhooks",
+                "{{WEBHOOK_ID}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Webhook",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/webhooks/{{WEBHOOK_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "webhooks",
+                "{{WEBHOOK_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "24 - Events",
+      "item": [
+        {
+          "name": "Event Catalog",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/events",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "events"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Event Definition",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/events/invoice.paid",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "events",
+                "invoice.paid"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Emit Event (notify + dispatch webhooks)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/events",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "events"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"invoice.paid\",\n  \"title\": \"Invoice Paid\",\n  \"message\": \"Invoice INV-001 was fully paid\",\n  \"type\": \"SUCCESS\",\n  \"resourceId\": \"INV-001\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "25 - Settings",
+      "item": [
+        {
+          "name": "Get Tenant Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/settings",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "settings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/settings",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "settings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Amdox Technologies\",\n  \"logoUrl\": \"https://example.com/logo.png\",\n  \"settings\": {\n    \"theme\": \"dark\",\n    \"fiscalYearStart\": \"04-01\"\n  }\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "26 - Permissions",
+      "item": [
+        {
+          "name": "List Permissions (grouped)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/permissions",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "permissions"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data.all&&r.data.all[0]){pm.collectionVariables.set('PERMISSION_ID',r.data.all[0].id);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Permission",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/permissions/{{PERMISSION_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "permissions",
+                "{{PERMISSION_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Permission (saves PERMISSION_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/permissions",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "permissions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resource\": \"reports\",\n  \"action\": \"export\",\n  \"description\": \"Export BI reports\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data.id){pm.collectionVariables.set('PERMISSION_ID',r.data.id);}",
+                  "pm.test('created',()=>pm.response.code===201);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Permission",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/permissions/{{PERMISSION_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "permissions",
+                "{{PERMISSION_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "27 - Roles (RBAC)",
+      "item": [
+        {
+          "name": "List Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/roles",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "roles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Role (saves ROLE_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/roles",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "roles"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Auditor\",\n  \"description\": \"Read-only auditor\",\n  \"permissionIds\": [\n    \"{{PERMISSION_ID}}\"\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data.id){pm.collectionVariables.set('ROLE_ID',r.data.id);}",
+                  "pm.test('created',()=>pm.response.code===201);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Role",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/roles/{{ROLE_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "roles",
+                "{{ROLE_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Role (replace permissions)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/roles/{{ROLE_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "roles",
+                "{{ROLE_ID}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated auditor role\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Assign Role to User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/roles/{{ROLE_ID}}/assign",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "roles",
+                "{{ROLE_ID}}",
+                "assign"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{USER_ID}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Revoke Role from User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/roles/{{ROLE_ID}}/revoke",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "roles",
+                "{{ROLE_ID}}",
+                "revoke"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{USER_ID}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Role",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/roles/{{ROLE_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "roles",
+                "{{ROLE_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "28 - Integrations",
+      "item": [
+        {
+          "name": "List Integrations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/integrations",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "integrations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upsert Integration (slack)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/integrations/slack",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "integrations",
+                "slack"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true,\n  \"config\": {\n    \"webhookUrl\": \"https://hooks.slack.com/xxx\",\n    \"channel\": \"#erp\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Integration",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/integrations/slack",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "integrations",
+                "slack"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Integration",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/integrations/slack",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "integrations",
+                "slack"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "29 - Dashboards & BI",
+      "item": [
+        {
+          "name": "KPI Overview (cross-module)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/dashboards/stats/overview",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "dashboards",
+                "stats",
+                "overview"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Dashboard (saves DASHBOARD_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/dashboards",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "dashboards"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Executive Overview\",\n  \"description\": \"Company-wide KPIs\",\n  \"isPublic\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data.id){pm.collectionVariables.set('DASHBOARD_ID',r.data.id);}",
+                  "pm.test('created',()=>pm.response.code===201);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Dashboards",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/dashboards",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "dashboards"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Dashboard (with widgets)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/dashboards/{{DASHBOARD_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "dashboards",
+                "{{DASHBOARD_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Dashboard",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/dashboards/{{DASHBOARD_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "dashboards",
+                "{{DASHBOARD_ID}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Dashboard",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/dashboards/{{DASHBOARD_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "dashboards",
+                "{{DASHBOARD_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "30 - Widgets",
+      "item": [
+        {
+          "name": "Create Widget (saves WIDGET_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/widgets",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "widgets"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dashboardId\": \"{{DASHBOARD_ID}}\",\n  \"title\": \"AR vs AP\",\n  \"type\": \"PIE_CHART\",\n  \"dataSource\": \"finance.arVsAp\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data.id){pm.collectionVariables.set('WIDGET_ID',r.data.id);}",
+                  "pm.test('created',()=>pm.response.code===201);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Widgets (filter by dashboard)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/widgets",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "widgets"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Widget",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/widgets/{{WIDGET_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "widgets",
+                "{{WIDGET_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Widget Data (live)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/widgets/{{WIDGET_ID}}/data",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "widgets",
+                "{{WIDGET_ID}}",
+                "data"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Widget",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/widgets/{{WIDGET_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "widgets",
+                "{{WIDGET_ID}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"AR vs AP (updated)\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Widget",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/widgets/{{WIDGET_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "widgets",
+                "{{WIDGET_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "31 - Reports",
+      "item": [
+        {
+          "name": "Generate Financial Summary (live)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/reports/generate/financial-summary",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "reports",
+                "generate",
+                "financial-summary"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Inventory Status (live)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/reports/generate/inventory-status",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "reports",
+                "generate",
+                "inventory-status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Project Portfolio (live)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/reports/generate/project-portfolio",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "reports",
+                "generate",
+                "project-portfolio"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Scheduled Report (saves REPORT_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/reports",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "reports"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Monthly Financials\",\n  \"reportType\": \"financial-summary\",\n  \"format\": \"PDF\",\n  \"schedule\": \"0 9 1 * *\",\n  \"recipients\": [\n    \"cfo@amdox.com\"\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data.id){pm.collectionVariables.set('REPORT_ID',r.data.id);}",
+                  "pm.test('created',()=>pm.response.code===201);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Scheduled Reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/reports",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "reports"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Scheduled Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/reports/{{REPORT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "reports",
+                "{{REPORT_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Run Report Now",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/reports/{{REPORT_ID}}/run",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "reports",
+                "{{REPORT_ID}}",
+                "run"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Report",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/reports/{{REPORT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "reports",
+                "{{REPORT_ID}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Report",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/reports/{{REPORT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "reports",
+                "{{REPORT_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
