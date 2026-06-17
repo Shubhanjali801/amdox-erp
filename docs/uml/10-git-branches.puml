@@ -1,0 +1,30 @@
+@startuml Amdox-ERP-Git-Branches
+title Amdox ERP — Git Branching & Merge Strategy
+
+' PlantUML gitgraph-style using sequence of commits
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 12
+
+' ── Use a simple flow diagram to represent branches ──
+left to right direction
+
+rectangle "main\n(complete app — everything merges here)" as MAIN #LightGreen
+
+rectangle "feature/m2-auth\nLogin · Users · Tenants" as M2 #LightBlue
+rectangle "feature/m3-finance\nLedger · Invoices · Payments" as M3 #Wheat
+rectangle "feature/m4-hr\nEmployees · Payroll" as M4 #Plum
+rectangle "feature/m5-supply-chain-ml\nVendors · Inventory · ML Service" as M5 #LightSkyBlue
+rectangle "feature/m6-frontend\nReact Dashboard" as M6 #Pink
+
+M2 --> MAIN : merge (PR)
+M3 --> MAIN : merge (PR)
+M4 --> MAIN : merge (PR)
+M5 --> MAIN : merge (PR)
+M6 --> MAIN : merge (PR)
+
+note bottom of MAIN
+  Each member builds on their own branch,
+  then merges into main via a Pull Request.
+  main always holds the COMPLETE application.
+end note
+@enduml

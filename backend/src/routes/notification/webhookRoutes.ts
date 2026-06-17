@@ -1,11 +1,18 @@
 import { Router } from 'express';
 import * as ctrl from '../../controllers/notification/webhookController';
-import { authenticate } from '../../middleware/auth.middleware';
+import { authenticate, requirePermission } from '../../middleware/auth.middleware';
+import { validate } from '../../middleware/validation.middleware';
+import { createWebhookSchema, updateWebhookSchema } from '../../validators/notification.validator';
+
 const r = Router();
 r.use(authenticate);
-r.get('/',     ctrl.getAll);
-r.get('/:id',  ctrl.getById);
-r.post('/',    ctrl.create);
-r.put('/:id',  ctrl.update);
-r.delete('/:id', ctrl.remove);
+
+// Webhooks are tenant-level integration config → admin (users:write)
+r.get('/',         requirePermission('users:read'),  ctrl.getAll);
+r.get('/:id',      requirePermission('users:read'),  ctrl.getById);
+r.post('/',        requirePermission('users:write'), validate(createWebhookSchema), ctrl.create);
+r.put('/:id',      requirePermission('users:write'), validate(updateWebhookSchema), ctrl.update);
+r.delete('/:id',   requirePermission('users:write'), ctrl.remove);
+r.post('/:id/test', requirePermission('users:write'), ctrl.test);
+
 export default r;

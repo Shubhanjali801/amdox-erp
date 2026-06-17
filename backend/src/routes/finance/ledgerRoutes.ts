@@ -1,11 +1,17 @@
 import { Router } from 'express';
 import * as ctrl from '../../controllers/finance/ledgerController';
-import { authenticate } from '../../middleware/auth.middleware';
+import { authenticate, requirePermission } from '../../middleware/auth.middleware';
+import { validate } from '../../middleware/validation.middleware';
+import { createAccountSchema, updateAccountSchema } from '../../validators/finance.validator';
+
 const r = Router();
+
 r.use(authenticate);
-r.get('/',     ctrl.getAll);
-r.get('/:id',  ctrl.getById);
-r.post('/',    ctrl.create);
-r.put('/:id',  ctrl.update);
-r.delete('/:id', ctrl.remove);
+
+r.get('/',       requirePermission('finance:read'),  ctrl.getAll);
+r.get('/:id',    requirePermission('finance:read'),  ctrl.getById);
+r.post('/',      requirePermission('finance:write'), validate(createAccountSchema), ctrl.create);
+r.put('/:id',    requirePermission('finance:write'), validate(updateAccountSchema), ctrl.update);
+r.delete('/:id', requirePermission('finance:write'), ctrl.remove);
+
 export default r;

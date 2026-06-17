@@ -1,11 +1,17 @@
 import { Router } from 'express';
 import * as ctrl from '../../controllers/hr/payrollController';
-import { authenticate } from '../../middleware/auth.middleware';
+import { authenticate, requirePermission } from '../../middleware/auth.middleware';
+
 const r = Router();
 r.use(authenticate);
-r.get('/',     ctrl.getAll);
-r.get('/:id',  ctrl.getById);
-r.post('/',    ctrl.create);
-r.put('/:id',  ctrl.update);
-r.delete('/:id', ctrl.remove);
+
+// single payslip (before /:id so it isn't matched as a run id)
+r.get('/payslip/:id', requirePermission('payroll:read'), ctrl.getPayslip);
+
+r.get('/',       requirePermission('payroll:read'),    ctrl.getAll);
+r.get('/:id',    requirePermission('payroll:read'),    ctrl.getById);
+r.post('/',      requirePermission('payroll:approve'), ctrl.create);   // run payroll
+r.put('/:id',    requirePermission('payroll:approve'), ctrl.update);
+r.delete('/:id', requirePermission('payroll:approve'), ctrl.remove);
+
 export default r;
