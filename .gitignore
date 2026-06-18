@@ -3,6 +3,8 @@ node_modules/
 .pnp
 .pnp.js
 
+Amdox-ERP.postman_collection.json
+shell.sh
 # Environment files
 .env
 .env.local
@@ -60,4 +62,9 @@ ream.md
 /ml-service
 ml-service/README.md
 ml-service/.env
-ml-servive/save_models
+ml-service/save_models
+
+
+backend/src/db/check-inventory.ts
+backend/src/db/seed-forecast-all.ts
+backend/src/db/seed-forecast-amdox.ts
