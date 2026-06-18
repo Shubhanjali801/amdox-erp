@@ -1,5 +1,4 @@
-# Created by https://www.toptal.com/developers/gitignore/api/node
-# Edit at https://www.toptal.com/developers/gitignore?templates=node
+
 
 ### Node ###
 # Logs
@@ -142,3 +141,6 @@ dist
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/node
+src/db/check-inventory.ts
+src/db/seed-forecast-all.ts
+src/db/seed-forecast-amdox.ts
