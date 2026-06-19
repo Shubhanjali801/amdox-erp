@@ -23,7 +23,7 @@ export const createWidgetSchema = Joi.object({
   dashboardId:     Joi.string().uuid().required(),
   title:           Joi.string().trim().min(2).max(120).required(),
   type:            Joi.string().uppercase().valid(...WIDGET_TYPES).required(),
-  dataSource:      Joi.string().trim().min(2).max(80).required(),
+  dataSource:      Joi.string().trim().min(2).max(80).required(),  // e.g. finance.revenue
   config:          Joi.object().optional(),
   position:        Joi.object().optional(),
   refreshInterval: Joi.number().integer().min(0).optional(),
@@ -42,9 +42,9 @@ export const updateWidgetSchema = Joi.object({
 export const createReportSchema = Joi.object({
   name:        Joi.string().trim().min(2).max(120).required(),
   description: Joi.string().trim().max(500).optional().allow(''),
-  reportType:  Joi.string().trim().min(2).max(80).required(),
+  reportType:  Joi.string().trim().min(2).max(80).required(),  // e.g. financial-summary
   format:      Joi.string().uppercase().valid(...REPORT_FORMATS).optional(),
-  schedule:    Joi.string().trim().max(100).required(),
+  schedule:    Joi.string().trim().max(100).required(),        // cron expression
   recipients:  Joi.array().items(Joi.string().email()).min(1).required(),
   config:      Joi.object().optional(),
 });
