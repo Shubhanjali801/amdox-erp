@@ -2,12 +2,12 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 const links = [
-  { to: '/',                label: '📊 Dashboard' },
-  { to: '/finance/ledger',  label: '💰 Finance' },
-  { to: '/hr/employees',    label: '👥 HR' },
-  { to: '/supply/pos',      label: '📦 Supply Chain' },
-  { to: '/projects',        label: '📋 Projects' },
-  { to: '/settings',        label: '⚙️ Settings' },
+  { to: '/dashboard',                     label: '📊 Dashboard' },
+  { to: '/finance/ledger',                label: '💰 Finance' },
+  { to: '/hr/employees',                  label: '👥 HR & Payroll' },
+  { to: '/supply-chain/purchase-orders',  label: '📦 Supply Chain' },
+  { to: '/projects',                      label: '📋 Projects' },
+  { to: '/settings',                      label: '⚙️ Settings' },
 ];
 
 const Sidebar: React.FC = () => (
