@@ -3,7 +3,7 @@ node_modules/
 .pnp
 .pnp.js
 
-Amdox-ERP.postman_collection.json
+
 shell.sh
 # Environment files
 .env
@@ -68,3 +68,4 @@ ml-service/save_models
 backend/src/db/check-inventory.ts
 backend/src/db/seed-forecast-all.ts
 backend/src/db/seed-forecast-amdox.ts
+Amdox ERP — Backend.postman_Response&Request_collection.json
