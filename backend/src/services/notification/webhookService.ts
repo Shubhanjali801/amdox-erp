@@ -45,7 +45,11 @@ export const webhookService = {
 
   async remove(tenantId: string, id: string) {
     await this.getById(tenantId, id);
-    await prisma.webhook.delete({ where: { id } });
+    // FK on webhook_deliveries is RESTRICT — remove delivery logs first.
+    await prisma.$transaction([
+      prisma.webhookDelivery.deleteMany({ where: { webhookId: id } }),
+      prisma.webhook.delete({ where: { id } }),
+    ]);
     logger.info(`Webhook deleted: ${id}`);
   },
 

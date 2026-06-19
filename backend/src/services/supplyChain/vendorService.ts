@@ -34,8 +34,19 @@ export const vendorService = {
   },
 
   async create(tenantId: string, input: any) {
-    const dup = await prisma.vendor.findFirst({ where: { tenantId, code: input.code, deletedAt: null } });
-    if (dup) throw new Error('VENDOR_CODE_EXISTS');
+    // The DB unique constraint on (tenantId, code) also covers soft-deleted rows,
+    // so check for ANY existing vendor with this code — not just active ones.
+    const existing = await prisma.vendor.findFirst({ where: { tenantId, code: input.code } });
+    if (existing) {
+      if (!existing.deletedAt) throw new Error('VENDOR_CODE_EXISTS');
+      // Revive a previously soft-deleted vendor with the same code
+      const revived = await prisma.vendor.update({
+        where: { id: existing.id },
+        data: { ...input, deletedAt: null, status: 'ACTIVE' },
+      });
+      logger.info(`Vendor revived: ${revived.code} (${revived.id})`);
+      return revived;
+    }
     const vendor = await prisma.vendor.create({ data: { tenantId, ...input } });
     logger.info(`Vendor created: ${vendor.code} (${vendor.id})`);
     return vendor;

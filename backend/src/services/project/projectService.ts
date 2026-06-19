@@ -41,8 +41,17 @@ export const projectService = {
   },
 
   async create(tenantId: string, input: any) {
-    const dup = await prisma.project.findFirst({ where: { tenantId, code: input.code, deletedAt: null } });
-    if (dup) throw new Error('PROJECT_CODE_EXISTS');
+    // Unique (tenantId, code) also covers soft-deleted rows — check all, revive if deleted.
+    const existing = await prisma.project.findFirst({ where: { tenantId, code: input.code } });
+    if (existing) {
+      if (!existing.deletedAt) throw new Error('PROJECT_CODE_EXISTS');
+      const revived = await prisma.project.update({
+        where: { id: existing.id },
+        data: { ...input, deletedAt: null, status: input.status ?? 'PLANNING' },
+      });
+      logger.info(`Project revived: ${revived.code} (${revived.id})`);
+      return revived;
+    }
     const project = await prisma.project.create({ data: { tenantId, ...input } });
     logger.info(`Project created: ${project.code} (${project.id})`);
     return project;
