@@ -43,6 +43,9 @@ import roleRoutes        from './settings/roleRoutes';
 import permissionRoutes  from './settings/permissionRoutes';
 import integrationRoutes from './settings/integrationRoutes';
 
+// ── Audit & Compliance (F-09) ──
+import auditRoutes       from './auditRoutes';
+
 const router = Router();
 
 // ─── Health Checks ──────────────────────────────────────────────────────────
@@ -97,5 +100,8 @@ router.use('/settings',     settingsRoutes);
 router.use('/roles',        roleRoutes);
 router.use('/permissions',  permissionRoutes);
 router.use('/integrations', integrationRoutes);
+
+// ─── F-09: Audit & Compliance ───────────────────────────────────────────────
+router.use('/audit', auditRoutes);
 
 export default router;

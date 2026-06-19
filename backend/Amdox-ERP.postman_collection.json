@@ -124,6 +124,10 @@
     {
       "key": "REPORT_ID",
       "value": ""
+    },
+    {
+      "key": "AUDIT_ID",
+      "value": ""
     }
   ],
   "item": [
@@ -4400,6 +4404,143 @@
               "path": [
                 "reports",
                 "{{REPORT_ID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "32 - Audit & Compliance",
+      "item": [
+        {
+          "name": "List Audit Entries (saves AUDIT_ID)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/audit",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "audit"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data[0]){pm.collectionVariables.set('AUDIT_ID',r.data[0].id);}",
+                  "pm.test('ok',()=>pm.response.code===200);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filter by Resource (auth)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/audit?resource=auth",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "audit"
+              ],
+              "query": [
+                {
+                  "key": "resource",
+                  "value": "auth"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Action (LOGIN)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/audit?action=LOGIN",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "audit"
+              ],
+              "query": [
+                {
+                  "key": "action",
+                  "value": "LOGIN"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Audit Entry",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/audit/{{AUDIT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "audit",
+                "{{AUDIT_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify Hash Chain (tamper check)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/audit/verify",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "audit",
+                "verify"
               ]
             }
           }
