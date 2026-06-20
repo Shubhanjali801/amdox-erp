@@ -59,6 +59,14 @@ export const authService = {
     }
   },
 
+  async forgotPassword(email: string): Promise<void> {
+    await api.post('/auth/forgot-password', { email });
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await api.post('/auth/reset-password', { token, newPassword });
+  },
+
   getCurrentUser(): AuthUser | null {
     const raw = localStorage.getItem('user');
     return raw ? JSON.parse(raw) : null;

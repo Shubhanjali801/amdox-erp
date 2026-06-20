@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
 import { authService } from '../services/authService'
+import PublicNavbar from '../components/common/PublicNavbar'
 
 const schema = z.object({
   companyName: z.string().min(2, 'Company name is required'),
@@ -38,7 +39,9 @@ export default function Register() {
   const field = 'w-full px-4 py-2 rounded border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none'
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-8">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <PublicNavbar />
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
       <div className="max-w-md w-full bg-white rounded-xl shadow p-8">
         <h1 className="text-2xl font-bold text-center text-blue-700 mb-2">Amdox ERP</h1>
         <p className="text-center text-gray-500 mb-8">Register your company</p>
@@ -82,6 +85,7 @@ export default function Register() {
             Sign in
           </button>
         </p>
+      </div>
       </div>
     </div>
   )

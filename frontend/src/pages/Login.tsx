@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
 import { authService } from '../services/authService'
+import PublicNavbar from '../components/common/PublicNavbar'
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -34,7 +35,9 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <PublicNavbar />
+      <div className="flex-1 flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-xl shadow p-8">
         <h1 className="text-2xl font-bold text-center text-blue-700 mb-2">Amdox ERP</h1>
         <p className="text-center text-gray-500 mb-8">Sign in to your account</p>
@@ -62,6 +65,16 @@ export default function Login() {
             {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
           </div>
 
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => navigate('/forgot-password')}
+              className="text-xs text-blue-600 hover:underline"
+            >
+              Forgot password?
+            </button>
+          </div>
+
           <button
             type="submit"
             disabled={submitting}
@@ -77,6 +90,7 @@ export default function Login() {
             Register here
           </button>
         </p>
+      </div>
       </div>
     </div>
   )
