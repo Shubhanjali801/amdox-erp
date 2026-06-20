@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import Layout from './components/common/Layout'
 import PrivateRoute from './components/Auth/PrivateRoute'
+import SettingsLayout from './components/Settings/SettingsLayout'
 
 // Eagerly loaded
 import Landing from './pages/Landing'
@@ -40,6 +41,7 @@ const Forecasting    = lazy(() => import('./pages/SupplyChain/Forecasting'))
 const SettingsGeneral = lazy(() => import('./pages/Settings/General'))
 const SettingsUsers   = lazy(() => import('./pages/Settings/Users'))
 const SettingsRoles   = lazy(() => import('./pages/Settings/Roles'))
+const SettingsIntegrations = lazy(() => import('./pages/Settings/Integrations'))
 
 const Loader = () => (
   <div className="flex items-center justify-center h-screen">
@@ -94,9 +96,12 @@ export default function App() {
           <Route path="/supply-chain/forecasting"     element={<Forecasting />} />
 
           {/* Settings */}
-          <Route path="/settings"       element={<SettingsGeneral />} />
-          <Route path="/settings/users" element={<SettingsUsers />} />
-          <Route path="/settings/roles" element={<SettingsRoles />} />
+          <Route path="/settings" element={<SettingsLayout />}>
+            <Route index element={<SettingsGeneral />} />
+            <Route path="users" element={<SettingsUsers />} />
+            <Route path="roles" element={<SettingsRoles />} />
+            <Route path="integrations" element={<SettingsIntegrations />} />
+          </Route>
         </Route>
       </Route>
 
