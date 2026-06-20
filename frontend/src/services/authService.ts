@@ -1,7 +1,8 @@
 import api from './api';
 import { API_ENDPOINTS } from '../config/apiConfig';
 
-export interface LoginPayload { email: string; password: string }
+export interface LoginPayload { email: string; password: string; mfaToken?: string }
+export interface LoginResult { user?: AuthUser; mfaRequired?: boolean }
 export interface RegisterPayload {
   companyName: string;
   firstName: string;
@@ -31,11 +32,25 @@ function persistSession(data: any) {
 }
 
 export const authService = {
-  async login(payload: LoginPayload): Promise<AuthUser> {
+  async login(payload: LoginPayload): Promise<LoginResult> {
     const res = await api.post(API_ENDPOINTS.AUTH.LOGIN, payload);
+    // MFA: backend returns 200 with { success:false, mfaRequired:true }
+    if (res.data?.mfaRequired) return { mfaRequired: true };
     const data = res.data.data ?? res.data;
     persistSession(data);
-    return data.user;
+    return { user: data.user };
+  },
+
+  // ── MFA management ──
+  async mfaSetup(): Promise<{ qrDataUrl: string; secret: string; otpauthUrl: string }> {
+    const res = await api.post('/auth/mfa/setup');
+    return res.data.data ?? res.data;
+  },
+  async mfaEnable(token: string): Promise<void> {
+    await api.post('/auth/mfa/enable', { token });
+  },
+  async mfaDisable(token: string): Promise<void> {
+    await api.post('/auth/mfa/disable', { token });
   },
 
   async register(payload: RegisterPayload): Promise<AuthUser> {

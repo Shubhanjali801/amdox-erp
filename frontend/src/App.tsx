@@ -42,6 +42,7 @@ const SettingsGeneral = lazy(() => import('./pages/Settings/General'))
 const SettingsUsers   = lazy(() => import('./pages/Settings/Users'))
 const SettingsRoles   = lazy(() => import('./pages/Settings/Roles'))
 const SettingsIntegrations = lazy(() => import('./pages/Settings/Integrations'))
+const SettingsSecurity = lazy(() => import('./pages/Settings/Security'))
 
 const Loader = () => (
   <div className="flex items-center justify-center h-screen">
@@ -100,6 +101,7 @@ export default function App() {
             <Route index element={<SettingsGeneral />} />
             <Route path="users" element={<SettingsUsers />} />
             <Route path="roles" element={<SettingsRoles />} />
+            <Route path="security" element={<SettingsSecurity />} />
             <Route path="integrations" element={<SettingsIntegrations />} />
           </Route>
         </Route>

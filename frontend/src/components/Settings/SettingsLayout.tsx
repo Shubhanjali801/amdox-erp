@@ -5,6 +5,7 @@ const tabs = [
   { to: '/settings', label: 'General', icon: '🏢', end: true },
   { to: '/settings/users', label: 'Users', icon: '👤' },
   { to: '/settings/roles', label: 'Roles & Permissions', icon: '🔐' },
+  { to: '/settings/security', label: 'Security (2FA)', icon: '🛡️' },
   { to: '/settings/integrations', label: 'Integrations', icon: '🔌' },
 ]
 
