@@ -3,6 +3,7 @@ import { Suspense, lazy } from 'react'
 import Layout from './components/common/Layout'
 import PrivateRoute from './components/Auth/PrivateRoute'
 import SettingsLayout from './components/Settings/SettingsLayout'
+import SupplyChainLayout from './components/SupplyChain/SupplyChainLayout'
 
 // Eagerly loaded
 import Landing from './pages/Landing'
@@ -91,10 +92,13 @@ export default function App() {
           <Route path="/projects/:id" element={<ProjectDetail />} />
 
           {/* Supply Chain */}
-          <Route path="/supply-chain/purchase-orders" element={<PurchaseOrders />} />
-          <Route path="/supply-chain/inventory"       element={<Inventory />} />
-          <Route path="/supply-chain/vendors"         element={<Vendors />} />
-          <Route path="/supply-chain/forecasting"     element={<Forecasting />} />
+          <Route path="/supply-chain" element={<SupplyChainLayout />}>
+            <Route index element={<Vendors />} />
+            <Route path="vendors"         element={<Vendors />} />
+            <Route path="inventory"       element={<Inventory />} />
+            <Route path="purchase-orders" element={<PurchaseOrders />} />
+            <Route path="forecasting"     element={<Forecasting />} />
+          </Route>
 
           {/* Settings */}
           <Route path="/settings" element={<SettingsLayout />}>

@@ -5,7 +5,7 @@ const links = [
   { to: '/dashboard',                     label: '📊 Dashboard' },
   { to: '/finance/ledger',                label: '💰 Finance' },
   { to: '/hr/employees',                  label: '👥 HR & Payroll' },
-  { to: '/supply-chain/purchase-orders',  label: '📦 Supply Chain' },
+  { to: '/supply-chain/vendors',          label: '📦 Supply Chain' },
   { to: '/projects',                      label: '📋 Projects' },
 ];
 
