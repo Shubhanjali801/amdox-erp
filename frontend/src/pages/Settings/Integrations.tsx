@@ -59,7 +59,7 @@ export default function Integrations() {
                 onClick={() => toggle(it.key, !on)}
                 disabled={busy === it.key}
                 className={`w-full py-2 rounded-lg text-sm font-semibold transition ${
-                  on ? 'bg-gray-700 text-gray-200 hover:bg-red-600 hover:text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
+                  on ? 'bg-gray-700 text-gray-200 hover:bg-red-600 hover:text-white' : 'bg-[#0067c0] text-white hover:bg-[#005a9e]'
                 }`}
               >
                 {busy === it.key ? '…' : on ? 'Disconnect' : 'Connect'}

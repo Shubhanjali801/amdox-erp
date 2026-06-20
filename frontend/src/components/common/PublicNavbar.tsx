@@ -1,16 +1,35 @@
 import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 const PublicNavbar: React.FC = () => {
   const navigate = useNavigate()
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo — upper left */}
-        <Link to="/" className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold">A</div>
+        {/* Logo — upper left, links to the company website */}
+        <a
+          href="https://www.amdox.in/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2"
+          title="Visit amdox.in"
+        >
+          <img
+            src="/images/amdox_logo.jpg"
+            alt="Amdox"
+            className="h-16 w-16 rounded-lg object-contain"
+            onError={(e) => {
+              // Fallback to a gradient "A" if logo.png isn't present
+              const el = e.currentTarget
+              el.style.display = 'none'
+              el.insertAdjacentHTML(
+                'afterend',
+                '<div class="h-16 w-16 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold">A</div>'
+              )
+            }}
+          />
           <span className="font-bold text-gray-900 text-lg">Amdox <span className="text-blue-600">ERP</span></span>
-        </Link>
+        </a>
 
         {/* Center nav */}
         <nav className="hidden md:flex items-center gap-8 text-sm text-gray-600">

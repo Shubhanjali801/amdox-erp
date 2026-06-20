@@ -10,7 +10,7 @@ export const useAuth = () => {
 
   const logout = useCallback(async () => {
     await authService.logout();
-    navigate('/login');
+    navigate('/');
   }, [navigate]);
 
   return { isAuthenticated, token, user, logout };
