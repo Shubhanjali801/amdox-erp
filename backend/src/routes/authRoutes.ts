@@ -6,6 +6,8 @@ import {
   registerSchema,
   loginSchema,
   changePasswordSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from '../validators/auth.validator';
 
 const router = Router();
@@ -15,6 +17,8 @@ router.post('/register', validate(registerSchema), auth.register);
 router.post('/login',    validate(loginSchema),    auth.login);
 // refresh reads token from httpOnly cookie OR body — no body validation
 router.post('/refresh',  auth.refresh);
+router.post('/forgot-password', validate(forgotPasswordSchema), auth.forgotPassword);
+router.post('/reset-password',  validate(resetPasswordSchema),  auth.resetPassword);
 
 // ── Protected routes (JWT required) ───────────────────────
 router.post('/logout',         authenticate,                              auth.logout);

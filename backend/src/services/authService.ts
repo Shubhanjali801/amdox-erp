@@ -3,7 +3,9 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { ENV } from '../config/env';
 import prisma from '../config/database';
+import redisClient from '../config/redis';
 import { logger } from '../utils/logger';
+import { emailService } from './common/emailService';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -462,5 +464,38 @@ export const authService = {
     await prisma.session.deleteMany({ where: { userId } });
 
     logger.info(`Password changed for user: ${userId}`);
+  },
+
+  // ── Forgot Password — generate token + email reset link ──
+  async forgotPassword(email: string): Promise<void> {
+    const user = await prisma.user.findFirst({ where: { email: email.toLowerCase(), deletedAt: null } });
+    // Always succeed silently (don't reveal whether the email exists)
+    if (!user) {
+      logger.info(`Password reset requested for unknown email: ${email}`);
+      return;
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    // Store token -> userId in Redis for 15 minutes
+    await redisClient.set(`pwreset:${token}`, user.id, { EX: 900 });
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetLink = `${frontendUrl}/reset-password?token=${token}`;
+    await emailService.sendPasswordReset(user.email, resetLink, user.firstName);
+    logger.info(`Password reset link sent to ${user.email}`);
+  },
+
+  // ── Reset Password — verify token + set new password ─────
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const userId = await redisClient.get(`pwreset:${token}`);
+    if (!userId) throw new Error('INVALID_OR_EXPIRED_TOKEN');
+
+    const newHash = await authService.hashPassword(newPassword);
+    await prisma.user.update({ where: { id: userId }, data: { passwordHash: newHash } });
+
+    // One-time use: delete token + revoke existing sessions
+    await redisClient.del(`pwreset:${token}`);
+    await prisma.session.deleteMany({ where: { userId } });
+    logger.info(`Password reset completed for user: ${userId}`);
   },
 };

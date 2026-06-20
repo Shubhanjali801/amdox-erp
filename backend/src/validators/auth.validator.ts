@@ -89,6 +89,15 @@ export const refreshSchema = Joi.object({
   }),
 });
 
+export const forgotPasswordSchema = Joi.object({
+  email,
+});
+
+export const resetPasswordSchema = Joi.object({
+  token: Joi.string().required().messages({ 'any.required': 'Reset token is required' }),
+  newPassword: strongPassword,
+});
+
 export const changePasswordSchema = Joi.object({
   oldPassword: Joi.string().required().messages({
     'string.empty': 'Current password is required',

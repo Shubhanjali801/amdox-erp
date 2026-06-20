@@ -146,3 +146,26 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
     next(err);
   }
 };
+
+// POST /auth/forgot-password  { email }
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await authService.forgotPassword(req.body.email);
+    // Always the same response, whether or not the email exists
+    return sendSuccess(res, {}, 'If that email is registered, a reset link has been sent.');
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /auth/reset-password  { token, newPassword }
+export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await authService.resetPassword(req.body.token, req.body.newPassword);
+    return sendSuccess(res, {}, 'Password reset successfully. Please log in.');
+  } catch (err: any) {
+    if (err.message === 'INVALID_OR_EXPIRED_TOKEN')
+      return sendError(res, 'This reset link is invalid or has expired', 400);
+    next(err);
+  }
+};
