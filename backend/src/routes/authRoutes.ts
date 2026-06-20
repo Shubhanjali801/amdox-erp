@@ -25,4 +25,9 @@ router.post('/logout',         authenticate,                              auth.l
 router.get('/me',              authenticate,                              auth.me);
 router.put('/change-password', authenticate, validate(changePasswordSchema), auth.changePassword);
 
+// ── MFA (TOTP) ──
+router.post('/mfa/setup',   authenticate, auth.mfaSetup);
+router.post('/mfa/enable',  authenticate, auth.mfaEnable);
+router.post('/mfa/disable', authenticate, auth.mfaDisable);
+
 export default router;

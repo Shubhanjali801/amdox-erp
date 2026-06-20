@@ -81,6 +81,10 @@ export const loginSchema = Joi.object({
     'string.empty': 'Password is required',
     'any.required': 'Password is required',
   }),
+  mfaToken: Joi.string().trim().length(6).pattern(/^\d+$/).optional().messages({
+    'string.length': 'Authenticator code must be 6 digits',
+    'string.pattern.base': 'Authenticator code must be numeric',
+  }),
 });
 
 export const refreshSchema = Joi.object({

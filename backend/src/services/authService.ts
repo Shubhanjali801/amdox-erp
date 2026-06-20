@@ -4,6 +4,12 @@ import crypto from 'crypto';
 import { ENV } from '../config/env';
 import prisma from '../config/database';
 import redisClient from '../config/redis';
+import speakeasy from 'speakeasy';
+import qrcode from 'qrcode';
+
+// Verify a 6-digit TOTP code against a base32 secret (±1 time-step tolerance)
+const verifyTotp = (secret: string, token: string) =>
+  speakeasy.totp.verify({ secret, encoding: 'base32', token, window: 1 });
 import { logger } from '../utils/logger';
 import { emailService } from './common/emailService';
 
@@ -21,6 +27,7 @@ export interface RegisterInput {
 export interface LoginInput {
   email:    string;
   password: string;
+  mfaToken?: string;   // 6-digit TOTP code, required when MFA is enabled
   ipAddress?: string;
   userAgent?: string;
 }
@@ -231,6 +238,12 @@ export const authService = {
     // 2. Verify password
     const valid = await authService.comparePassword(password, user.passwordHash);
     if (!valid) throw new Error('INVALID_CREDENTIALS');
+
+    // 2b. MFA challenge — if enabled, a valid TOTP code is required
+    if (user.mfaEnabled) {
+      if (!input.mfaToken) throw new Error('MFA_REQUIRED');
+      if (!verifyTotp(user.mfaSecret || '', input.mfaToken)) throw new Error('INVALID_MFA_TOKEN');
+    }
 
     // 3. Build roles + permissions arrays
     const roles = user.userRoles.map((ur: any) => ur.role.name);
@@ -497,5 +510,43 @@ export const authService = {
     await redisClient.del(`pwreset:${token}`);
     await prisma.session.deleteMany({ where: { userId } });
     logger.info(`Password reset completed for user: ${userId}`);
+  },
+
+  // ── MFA: generate a secret + QR for the authenticator app ─
+  async setupMfa(userId: string): Promise<{ secret: string; otpauthUrl: string; qrDataUrl: string }> {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error('USER_NOT_FOUND');
+
+    const secretObj = speakeasy.generateSecret({ name: `Amdox ERP (${user.email})` });
+    const secret = secretObj.base32;
+    const otpauthUrl = secretObj.otpauth_url || '';
+    const qrDataUrl = await qrcode.toDataURL(otpauthUrl);
+
+    // Store the secret but DON'T enable yet — only after the user verifies a code
+    await prisma.user.update({ where: { id: userId }, data: { mfaSecret: secret } });
+    return { secret, otpauthUrl, qrDataUrl };
+  },
+
+  // ── MFA: verify the first code and turn MFA on ───────────
+  async enableMfa(userId: string, token: string): Promise<void> {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.mfaSecret) throw new Error('MFA_NOT_SETUP');
+
+    if (!verifyTotp(user.mfaSecret, token)) throw new Error('INVALID_MFA_TOKEN');
+
+    await prisma.user.update({ where: { id: userId }, data: { mfaEnabled: true } });
+    logger.info(`MFA enabled for user: ${userId}`);
+  },
+
+  // ── MFA: disable (requires a current code) ───────────────
+  async disableMfa(userId: string, token: string): Promise<void> {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error('USER_NOT_FOUND');
+    if (!user.mfaEnabled) return;
+
+    if (!verifyTotp(user.mfaSecret || '', token)) throw new Error('INVALID_MFA_TOKEN');
+
+    await prisma.user.update({ where: { id: userId }, data: { mfaEnabled: false, mfaSecret: null } });
+    logger.info(`MFA disabled for user: ${userId}`);
   },
 };

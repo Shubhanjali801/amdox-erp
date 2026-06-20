@@ -35,11 +35,12 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
 // ─── Login ────────────────────────────────────────────────
 export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, mfaToken } = req.body;
 
     const result = await authService.login({
       email,
       password,
+      mfaToken,
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'],
     });
@@ -63,6 +64,41 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     if (err.message === 'INVALID_CREDENTIALS') return sendError(res, 'Invalid email or password', 401);
     if (err.message === 'ACCOUNT_INACTIVE')    return sendError(res, 'Account is deactivated', 403);
     if (err.message === 'TENANT_INACTIVE')     return sendError(res, 'Your organisation account is inactive', 403);
+    // MFA: tell the client to prompt for a 6-digit code (not an error state)
+    if (err.message === 'MFA_REQUIRED')        return res.status(200).json({ success: false, mfaRequired: true, message: 'Enter your authenticator code' });
+    if (err.message === 'INVALID_MFA_TOKEN')   return sendError(res, 'Invalid authenticator code', 401);
+    next(err);
+  }
+};
+
+// ─── MFA: setup (returns QR), enable, disable ─────────────
+export const mfaSetup = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = (req as any).user?.userId;
+    const result = await authService.setupMfa(userId);
+    return sendSuccess(res, result, 'Scan the QR with your authenticator app, then verify a code to enable.');
+  } catch (err) { next(err); }
+};
+
+export const mfaEnable = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = (req as any).user?.userId;
+    await authService.enableMfa(userId, req.body.token);
+    return sendSuccess(res, {}, 'MFA enabled');
+  } catch (err: any) {
+    if (err.message === 'MFA_NOT_SETUP')     return sendError(res, 'Run MFA setup first', 400);
+    if (err.message === 'INVALID_MFA_TOKEN') return sendError(res, 'Invalid authenticator code', 400);
+    next(err);
+  }
+};
+
+export const mfaDisable = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = (req as any).user?.userId;
+    await authService.disableMfa(userId, req.body.token);
+    return sendSuccess(res, {}, 'MFA disabled');
+  } catch (err: any) {
+    if (err.message === 'INVALID_MFA_TOKEN') return sendError(res, 'Invalid authenticator code', 400);
     next(err);
   }
 };
