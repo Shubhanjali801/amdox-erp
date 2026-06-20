@@ -27,6 +27,7 @@ class ForecastRequest(BaseModel):
     forecast_horizon: int       = Field(default=6, ge=1, le=24, description="Months ahead")
 
     class Config:
+        protected_namespaces = ()
         json_schema_extra = {
             "example": {
                 "tenant_id": "tenant-001",
@@ -53,6 +54,8 @@ class ForecastRequest(BaseModel):
 
 class TrainRequest(BaseModel):
     """Request to retrain model for a specific item"""
+    model_config = {"protected_namespaces": ()}
+
     tenant_id: str
     inventory_item_id: str
     model_type: ModelType = ModelType.LSTM
