@@ -128,6 +128,10 @@
     {
       "key": "AUDIT_ID",
       "value": ""
+    },
+    {
+      "key": "MFA_SECRET",
+      "value": ""
     }
   ],
   "item": [
@@ -4542,6 +4546,205 @@
                 "audit",
                 "verify"
               ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "33 - Auth Extras (MFA + Password)",
+      "item": [
+        {
+          "name": "MFA Setup (returns QR + secret)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/auth/mfa/setup",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "auth",
+                "mfa",
+                "setup"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data.secret){pm.collectionVariables.set('MFA_SECRET',r.data.secret);}",
+                  "console.log('Scan data.qrDataUrl in the body, or use data.secret in an authenticator app');",
+                  "pm.test('ok',()=>pm.response.code===200);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MFA Enable (verify first code)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/auth/mfa/enable",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "auth",
+                "mfa",
+                "enable"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "MFA Disable (current code)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/auth/mfa/disable",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "auth",
+                "mfa",
+                "disable"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login WITH MFA code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/auth/login",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@amdox.com\",\n  \"password\": \"YourPassword1!\",\n  \"mfaToken\": \"123456\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r=pm.response.json();",
+                  "if(r.data&&r.data.accessToken){pm.collectionVariables.set('TOKEN',r.data.accessToken);}",
+                  "if(r.mfaRequired){console.log('MFA required — supply mfaToken');}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Forgot Password (sends email)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/auth/forgot-password",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@amdox.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reset Password (token from email)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/auth/reset-password",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"PASTE_TOKEN_FROM_EMAIL_LINK\",\n  \"newPassword\": \"NewPassword1!\"\n}"
             }
           }
         }
