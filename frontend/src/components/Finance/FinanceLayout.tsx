@@ -10,11 +10,7 @@ const tabs = [
 
 const FinanceLayout: React.FC = () => (
   <div>
-    <div className="mb-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Finance</h1>
-      <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Ledger, invoices, payments &amp; reporting</p>
-    </div>
-    <div className="flex gap-1 border-b border-gray-200 dark:border-gray-800 mb-6">
+    <div className="flex justify-center gap-2 border-b border-gray-200 dark:border-gray-800 mb-6">
       {tabs.map((t) => (
         <NavLink key={t.to} to={t.to}
           className={({ isActive }) =>
