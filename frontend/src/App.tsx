@@ -4,6 +4,8 @@ import Layout from './components/common/Layout'
 import PrivateRoute from './components/Auth/PrivateRoute'
 import SettingsLayout from './components/Settings/SettingsLayout'
 import SupplyChainLayout from './components/SupplyChain/SupplyChainLayout'
+import FinanceLayout from './components/Finance/FinanceLayout'
+import HRLayout from './components/HR/HRLayout'
 
 // Eagerly loaded
 import Landing from './pages/Landing'
@@ -31,6 +33,7 @@ const Attendance     = lazy(() => import('./pages/HR/Attendance'))
 // Projects (M4)
 const ProjectsList   = lazy(() => import('./pages/Projects/ProjectsList'))
 const ProjectDetail  = lazy(() => import('./pages/Projects/ProjectDetail'))
+const ResourcePlanning = lazy(() => import('./pages/Projects/ResourcePlanning'))
 
 // Supply Chain (M5)
 const PurchaseOrders = lazy(() => import('./pages/SupplyChain/PurchaseOrders'))
@@ -44,6 +47,7 @@ const SettingsUsers   = lazy(() => import('./pages/Settings/Users'))
 const SettingsRoles   = lazy(() => import('./pages/Settings/Roles'))
 const SettingsIntegrations = lazy(() => import('./pages/Settings/Integrations'))
 const SettingsSecurity = lazy(() => import('./pages/Settings/Security'))
+const SettingsAppearance = lazy(() => import('./pages/Settings/Appearance'))
 
 const Loader = () => (
   <div className="flex items-center justify-center h-screen">
@@ -76,20 +80,27 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
 
           {/* Finance */}
-          <Route path="/finance/ledger"      element={<Ledger />} />
-          <Route path="/finance/payables"    element={<Payables />} />
-          <Route path="/finance/receivables" element={<Receivables />} />
-          <Route path="/finance/reports"     element={<FinReports />} />
+          <Route path="/finance" element={<FinanceLayout />}>
+            <Route index element={<Ledger />} />
+            <Route path="ledger"      element={<Ledger />} />
+            <Route path="payables"    element={<Payables />} />
+            <Route path="receivables" element={<Receivables />} />
+            <Route path="reports"     element={<FinReports />} />
+          </Route>
 
           {/* HR */}
-          <Route path="/hr/employees"  element={<Employees />} />
-          <Route path="/hr/payroll"    element={<Payroll />} />
-          <Route path="/hr/leave"      element={<Leave />} />
-          <Route path="/hr/attendance" element={<Attendance />} />
+          <Route path="/hr" element={<HRLayout />}>
+            <Route index element={<Employees />} />
+            <Route path="employees"  element={<Employees />} />
+            <Route path="attendance" element={<Attendance />} />
+            <Route path="leave"      element={<Leave />} />
+            <Route path="payroll"    element={<Payroll />} />
+          </Route>
 
           {/* Projects */}
-          <Route path="/projects"     element={<ProjectsList />} />
-          <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/projects"           element={<ProjectsList />} />
+          <Route path="/projects/resources" element={<ResourcePlanning />} />
+          <Route path="/projects/:id"       element={<ProjectDetail />} />
 
           {/* Supply Chain */}
           <Route path="/supply-chain" element={<SupplyChainLayout />}>
@@ -106,6 +117,7 @@ export default function App() {
             <Route path="users" element={<SettingsUsers />} />
             <Route path="roles" element={<SettingsRoles />} />
             <Route path="security" element={<SettingsSecurity />} />
+            <Route path="appearance" element={<SettingsAppearance />} />
             <Route path="integrations" element={<SettingsIntegrations />} />
           </Route>
         </Route>

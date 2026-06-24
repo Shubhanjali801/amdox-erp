@@ -22,23 +22,23 @@ export function DataTable<T extends Record<string, any>>({
   if (error) return <div className="text-red-400 text-sm py-8 text-center bg-red-900/20 border border-red-800 rounded-lg">{error}</div>
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-700">
+    <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-transparent">
       <table className="w-full text-sm">
-        <thead className="bg-gray-800 text-gray-400">
+        <thead className="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
           <tr>
             {columns.map((c) => (
               <th key={c.key} className="text-left font-medium px-4 py-3 whitespace-nowrap">{c.header}</th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-800">
+        <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
           {rows.length === 0 ? (
-            <tr><td colSpan={columns.length} className="text-center text-gray-500 py-8">{empty}</td></tr>
+            <tr><td colSpan={columns.length} className="text-center text-gray-400 dark:text-gray-500 py-8">{empty}</td></tr>
           ) : (
             rows.map((row, i) => (
-              <tr key={rowKey ? rowKey(row) : i} className="hover:bg-gray-800/50">
+              <tr key={rowKey ? rowKey(row) : i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                 {columns.map((c) => (
-                  <td key={c.key} className="px-4 py-3 text-gray-200 whitespace-nowrap">
+                  <td key={c.key} className="px-4 py-3 text-gray-800 dark:text-gray-200 whitespace-nowrap">
                     {c.render ? c.render(row) : row[c.key]}
                   </td>
                 ))}
