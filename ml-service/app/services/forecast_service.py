@@ -220,16 +220,24 @@ class ForecastService:
         forecast_df  = model.predict(horizon)
         future_dates = generate_future_dates(df["date"].iloc[-1], horizon)
 
-        # Eval on historical (in-sample fitted values)
-        hist = model.in_sample()
-        if len(hist) > 0:
-            m      = min(len(hist), len(df))
-            y_true = df["quantity"].values[-m:]
-            y_pred = hist["yhat"].values[-m:]
-            mape   = calculate_mape(y_true, y_pred)
-            mae    = calculate_mae(y_true, y_pred)
-        else:
-            mape = mae = 0.0
+        # Holdout back-test for an HONEST out-of-sample MAPE.
+        # (In-sample fit gives ~0% because Prophet fits its own training points.)
+        mape = mae = 0.0
+        h = min(3, max(1, len(df) // 4))
+        if len(df) > h + 2:
+            try:
+                train_df = df.iloc[:-h]
+                test_df  = df.iloc[-h:]
+                bt = ProphetForecaster(seasonality_mode=settings.PROPHET_SEASONALITY_MODE)
+                bt.train(train_df)
+                bt_pred = bt.predict(h)
+                y_true  = test_df["quantity"].values
+                y_pred  = bt_pred["yhat"].values[:len(y_true)]
+                mape    = calculate_mape(y_true, y_pred)
+                mae     = calculate_mae(y_true, y_pred)
+            except Exception as e:
+                logger.warning(f"Prophet back-test failed, MAPE unavailable: {e}")
+                mape = mae = 0.0
 
         forecasts = []
         for i in range(min(horizon, len(forecast_df))):
