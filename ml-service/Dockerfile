@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system deps for Prophet + TensorFlow
+# Install system deps for Prophet + pytorch
 RUN apt-get update && apt-get install -y \
     gcc g++ libgomp1 \
     && rm -rf /var/lib/apt/lists/*

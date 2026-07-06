@@ -1,47 +1,114 @@
 @startuml Amdox-ERP-Sequence
-title Amdox ERP — Sequence Diagram (Login + Demand Forecast)
+title Amdox ERP — How the parts connect (real workflow)
 
 skinparam sequenceMessageAlign center
 skinparam backgroundColor #FEFEFE
+skinparam maxMessageSize 220
+
 actor User
-participant "React\nFrontend" as FE
-participant "NestJS API\nGateway :5000" as API
-participant "Auth\nMiddleware" as MW
-participant "Service\nLayer" as SVC
-database "PostgreSQL 17\n(Prisma)" as DB
-participant "ML Service\nFastAPI :8000" as ML
-queue "Redis\n(BullMQ)" as RQ
+participant "React + Vite\n(Axios + Zustand)" as FE
+participant "Express API\n:5000\n(routes/index.ts)" as API
+participant "Middleware\nauthenticate /\nrequirePermission /\nvalidate(Joi)" as MW
+participant "Controller\n(req → res)" as CTRL
+participant "Service\n(business logic)" as SVC
+database "PostgreSQL 17\nvia Prisma" as DB
+participant "Redis\n(sessions, tokens)" as RD
+participant "ML Service\nFastAPI :8000\n(LSTM+Prophet)" as ML
+participant "Gmail SMTP\n(Nodemailer)" as MAIL
 
-== Authentication ==
-User -> FE : enter email + password
-FE -> API : POST /auth/login
-API -> SVC : authService.login()
-SVC -> DB : SELECT user + roles + permissions
-DB --> SVC : user record
-SVC -> SVC : bcrypt.compare(password)
-SVC -> DB : INSERT session, audit_log
-SVC --> API : { accessToken, refreshToken }
-API --> FE : 200 + JWT
-FE -> FE : store token (Zustand)
+' ============================================================
+== 1. Register Company (public) ==
+User -> FE : fill register form
+FE -> API : POST /api/v1/auth/register
+API -> MW : validate(registerSchema)
+MW -> CTRL : ok → authController.register
+CTRL -> SVC : authService.register()
+SVC -> DB : create Tenant + admin User + default Roles
+SVC -> SVC : bcrypt.hash(password)
+SVC --> CTRL : { user, accessToken, refreshToken }
+CTRL --> FE : 201 + JWT
+FE -> FE : store token + user (Zustand / localStorage)
 
-== Authenticated Request ==
-User -> FE : open Forecast page
-FE -> API : GET /supply/forecasts\n(Bearer token)
-API -> MW : verify JWT + RBAC
-MW --> API : req.user set
-API -> SVC : forecastingService.generate()
-SVC -> DB : SELECT sales history
-DB --> SVC : stock movements
-SVC -> ML : POST /forecast/predict\n{ historical_data }
-ML -> ML : LSTM / Prophet predict
-ML --> SVC : { predicted_qty, mape }
-SVC -> DB : INSERT forecast
-SVC --> API : forecast result
-API --> FE : 200 + chart data
-FE --> User : render forecast 📈
+' ============================================================
+== 2. Login → JWT ==
+User -> FE : email + password
+FE -> API : POST /api/v1/auth/login
+API -> MW : validate(loginSchema)
+MW -> CTRL : authController.login
+CTRL -> SVC : authService.login()
+SVC -> DB : find User + roles + permissions
+SVC -> SVC : bcrypt.compare()
+SVC -> DB : INSERT Session + AuditLog
+SVC --> CTRL : tokens (JWT carries tenantId + permissions)
+CTRL --> FE : 200 + accessToken (+ refresh cookie)
+note over FE : Axios interceptor now attaches\nAuthorization: Bearer <token>\nto every request
 
-== Async Job (background) ==
-SVC -> RQ : enqueue retrain job
-RQ -> ML : nightly retrain
-ML --> RQ : model saved
+' ============================================================
+== 3. Authenticated request — the 5-layer chain (e.g. Record Payment) ==
+User -> FE : submit payment form
+FE -> API : POST /api/v1/finance/payments\n(Bearer token)
+API -> MW : authenticate (verify JWT)
+MW -> RD : check session valid
+RD --> MW : ok
+MW -> MW : requirePermission('finance:write')
+MW -> MW : validate(createPaymentSchema)
+MW -> CTRL : req.user set → paymentController.create
+CTRL -> SVC : paymentService.create({ tenantId, invoiceId, amount })
+SVC -> DB : find Invoice (scoped by tenantId)
+SVC -> DB : SUM completed payments
+SVC -> SVC : guard: approved? not overpaid?
+SVC -> DB : $transaction → INSERT Payment\n+ UPDATE Invoice status (PARTIALLY_PAID / PAID)
+DB --> SVC : committed
+SVC --> CTRL : { payment, newStatus }
+CTRL --> FE : 201 "invoice is now PAID" (sendSuccess)
+FE --> User : toast + refresh table (TanStack Query)
+note over MW, DB : Every query is filtered by tenantId →\nmulti-tenant isolation. Errors bubble to\nerrorHandler middleware → sendError(JSON)
+
+' ============================================================
+== 4. AI Demand Forecast (backend ↔ ML service) ==
+User -> FE : Generate Forecast
+FE -> API : POST /api/v1/supply/forecasts (Bearer)
+API -> MW : authenticate + requirePermission('supply:write')
+MW -> CTRL : forecastingController.create
+CTRL -> SVC : forecastingService.generate(inventoryItemId)
+SVC -> DB : read 6+ months of OUT stock movements
+DB --> SVC : monthly sales history
+SVC -> ML : POST /forecast (axios)\n{ historical_data, model_type }
+ML -> ML : LSTM / Prophet → predict + MAPE
+ML --> SVC : { forecasts[], model_used, mape }
+SVC -> DB : INSERT Forecast rows
+SVC --> CTRL : forecast result
+CTRL --> FE : 201 + predictions
+FE --> User : render chart (Recharts) 📈
+
+' ============================================================
+== 5. Forgot Password (Redis token + email) ==
+User -> FE : enter email
+FE -> API : POST /api/v1/auth/forgot-password
+API -> CTRL : authController.forgotPassword
+CTRL -> SVC : authService.forgotPassword(email)
+SVC -> DB : find User by email
+SVC -> RD : SET pwreset:<token> = userId (TTL 15m)
+SVC -> MAIL : send reset link (FRONTEND_URL/reset-password?token=…)
+MAIL --> User : 📧 reset email
+User -> FE : open link → set new password
+FE -> API : POST /api/v1/auth/reset-password { token, newPassword }
+API -> CTRL : authController.resetPassword
+CTRL -> SVC : authService.resetPassword()
+SVC -> RD : GET + DEL token (one-time use)
+SVC -> DB : UPDATE passwordHash + revoke sessions
+CTRL --> FE : 200 "please log in"
+
+' ============================================================
+== 6. Event fan-out (notifications + webhooks) ==
+SVC -> SVC : eventService.emit('invoice.paid')
+SVC -> DB : INSERT Notification (in-app)
+SVC -> DB : find active Webhooks subscribed to event
+SVC -> SVC : webhookService.deliver() (HMAC-signed POST)
+SVC -> DB : INSERT WebhookDelivery (status logged)
+
+' ============================================================
+== 7. Audit trail (cross-cutting) ==
+note over SVC, DB : Sensitive mutations call auditService.log() →\nhash-chained AuditLog row (tamper-evident).\nGET /audit/verify re-checks the chain.
+
 @enduml

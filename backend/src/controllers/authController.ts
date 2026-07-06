@@ -120,8 +120,9 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
     });
 
     return sendSuccess(res, {
-      accessToken: tokens.accessToken,
-      expiresIn:   tokens.expiresIn,
+      accessToken:  tokens.accessToken,
+      refreshToken: tokens.refreshToken,   // also returned for SPA/mobile (token rotation)
+      expiresIn:    tokens.expiresIn,
     }, 'Token refreshed');
 
   } catch (err: any) {

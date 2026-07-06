@@ -6,8 +6,8 @@ interface Props { data?: { name: string; value: number }[]; title?: string; }
 const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 const PieChart: React.FC<Props> = ({ data = [], title = 'Pie Chart' }) => (
-  <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-    <h3 className="text-white font-semibold mb-3">{title}</h3>
+  <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+    <h3 className="text-gray-900 dark:text-white font-semibold mb-3">{title}</h3>
     {data.length === 0 ? (
       <div className="flex items-center justify-center h-[220px] text-gray-500 text-sm">No data</div>
     ) : (

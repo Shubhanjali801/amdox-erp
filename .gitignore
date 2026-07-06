@@ -18,7 +18,7 @@ dist/
 build/
 .next/
 out/
-
+*.pdf
 # Logs
 logs/
 *.log
@@ -69,3 +69,5 @@ backend/src/db/check-inventory.ts
 backend/src/db/seed-forecast-all.ts
 backend/src/db/seed-forecast-amdox.ts
 Amdox ERP — Backend.postman_Response&Request_collection.json
+postman_collection.json
+Response&Request_collection.json

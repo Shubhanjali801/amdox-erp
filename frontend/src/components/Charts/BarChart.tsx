@@ -4,8 +4,8 @@ import { BarChart as RBarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
 interface Props { data?: { name: string; value: number }[]; title?: string; color?: string; }
 
 const BarChart: React.FC<Props> = ({ data = [], title = 'Bar Chart', color = '#3b82f6' }) => (
-  <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-    <h3 className="text-white font-semibold mb-3">{title}</h3>
+  <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+    <h3 className="text-gray-900 dark:text-white font-semibold mb-3">{title}</h3>
     {data.length === 0 ? (
       <div className="flex items-center justify-center h-[220px] text-gray-500 text-sm">No data</div>
     ) : (

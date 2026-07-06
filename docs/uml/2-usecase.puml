@@ -1,50 +1,138 @@
 @startuml Amdox-ERP-UseCase
-title Amdox ERP — Use Case Diagram
+title Amdox ERP — Use Case Diagram (actual system)
 left to right direction
 skinparam packageStyle rectangle
+skinparam actorStyle awesome
 
-actor "Super Admin"     as SA
-actor "Tenant Admin"    as TA
-actor "Finance Manager" as FM
-actor "HR Manager"      as HR
-actor "Supply Manager"  as SM
-actor "Viewer"          as VW
-actor "ML Service"      as ML <<system>>
-actor "Keycloak SSO"    as KC <<system>>
+' ===== Human actors (mapped to RBAC permission groups) =====
+actor "Tenant Admin"     as TA
+actor "Finance Manager"  as FM
+actor "HR Manager"       as HR
+actor "Supply Manager"   as SM
+actor "Project Manager"  as PM
+actor "Viewer"           as VW
+
+' ===== External / system actors =====
+actor "ML Service\n(FastAPI)"   as ML  <<system>>
+actor "Email\n(Gmail SMTP)"     as MAIL <<system>>
+actor "Webhook\nReceiver"       as WH  <<system>>
 
 rectangle "Amdox ERP Suite" {
-  usecase "Login / MFA"            as UC1
-  usecase "Manage Users"          as UC2
-  usecase "Manage Tenant"         as UC3
-  usecase "Chart of Accounts"     as UC4
-  usecase "Invoices (AP/AR)"      as UC5
-  usecase "Record Payments"       as UC6
-  usecase "Manage Employees"      as UC7
-  usecase "Run Payroll"           as UC8
-  usecase "Purchase Orders"       as UC9
-  usecase "Manage Inventory"      as UC10
-  usecase "Demand Forecast"       as UC11
-  usecase "View Dashboards"       as UC12
-  usecase "Audit Logs"            as UC13
+
+  package "Auth & Account" {
+    usecase "Register Company"        as UC_REG
+    usecase "Login (JWT)"             as UC_LOGIN
+    usecase "Forgot / Reset Password" as UC_PWD
+    usecase "Logout"                  as UC_OUT
+  }
+
+  package "Settings & RBAC" {
+    usecase "Manage Users"            as UC_USERS
+    usecase "Manage Roles & Perms"    as UC_ROLES
+    usecase "Tenant Settings"         as UC_SET
+    usecase "Integrations"            as UC_INT
+    usecase "View Audit Log"          as UC_AUDIT
+  }
+
+  package "Finance" {
+    usecase "Chart of Accounts"       as UC_GL
+    usecase "AP / AR Invoices"        as UC_INV
+    usecase "Approve Invoice"         as UC_APPR
+    usecase "Record Payment"          as UC_PAY
+    usecase "Currency Convert"        as UC_FX
+  }
+
+  package "HR & Payroll" {
+    usecase "Manage Employees"        as UC_EMP
+    usecase "Departments"             as UC_DEPT
+    usecase "Attendance"              as UC_ATT
+    usecase "Leave (request/approve)" as UC_LEAVE
+    usecase "Run Payroll"             as UC_PAYROLL
+  }
+
+  package "Supply Chain" {
+    usecase "Vendors"                 as UC_VEN
+    usecase "Inventory + Movements"   as UC_INVN
+    usecase "Purchase Orders"         as UC_PO
+    usecase "Receive Goods (GRN)"     as UC_GRN
+    usecase "Demand Forecast"         as UC_FC
+  }
+
+  package "Projects" {
+    usecase "Projects + Milestones"   as UC_PROJ
+    usecase "Tasks"                   as UC_TASK
+    usecase "Resource Allocation"     as UC_RES
+    usecase "Budget Tracking"         as UC_BUD
+  }
+
+  package "BI & Notifications" {
+    usecase "Dashboards / KPIs"       as UC_DASH
+    usecase "Reports"                 as UC_REP
+    usecase "Notifications"           as UC_NOTIF
+    usecase "Webhooks / Events"       as UC_WHK
+  }
 }
 
-SA --> UC2
-SA --> UC3
-SA --> UC13
-TA --> UC1
-TA --> UC2
-TA --> UC3
-FM --> UC4
-FM --> UC5
-FM --> UC6
-HR --> UC7
-HR --> UC8
-SM --> UC9
-SM --> UC10
-SM --> UC11
-VW --> UC12
+' ===== Everyone authenticates =====
+TA --> UC_LOGIN
+FM --> UC_LOGIN
+HR --> UC_LOGIN
+SM --> UC_LOGIN
+PM --> UC_LOGIN
+VW --> UC_LOGIN
+TA --> UC_REG
 
-UC1 ..> KC  : <<include>> SSO
-UC11 ..> ML : <<include>> predict
-UC8  ..> UC6 : <<extend>> bank transfer
+' ===== Tenant Admin (full control) =====
+TA --> UC_USERS
+TA --> UC_ROLES
+TA --> UC_SET
+TA --> UC_INT
+TA --> UC_AUDIT
+
+' ===== Finance Manager =====
+FM --> UC_GL
+FM --> UC_INV
+FM --> UC_APPR
+FM --> UC_PAY
+FM --> UC_FX
+
+' ===== HR Manager =====
+HR --> UC_EMP
+HR --> UC_DEPT
+HR --> UC_ATT
+HR --> UC_LEAVE
+HR --> UC_PAYROLL
+
+' ===== Supply Manager =====
+SM --> UC_VEN
+SM --> UC_INVN
+SM --> UC_PO
+SM --> UC_GRN
+SM --> UC_FC
+
+' ===== Project Manager =====
+PM --> UC_PROJ
+PM --> UC_TASK
+PM --> UC_RES
+PM --> UC_BUD
+
+' ===== Viewer (read-only) =====
+VW --> UC_DASH
+VW --> UC_REP
+
+' ===== Relationships =====
+UC_PAY  ..> UC_APPR : <<include>> invoice must be approved
+UC_GRN  ..> UC_PO   : <<include>> against a PO
+UC_FC   ..> ML      : <<include>> LSTM/Prophet predict
+UC_PWD  ..> MAIL    : <<include>> send reset link
+UC_WHK  ..> WH      : <<include>> signed delivery
+UC_NOTIF ..> UC_WHK : <<extend>> event fan-out
+
+note bottom of UC_AUDIT
+  All create/update/delete actions are
+  recorded in a tamper-evident (hash-chained)
+  audit log. Every request is JWT-authenticated,
+  RBAC-checked, and tenant-isolated.
+end note
+
 @enduml

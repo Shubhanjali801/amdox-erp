@@ -25,26 +25,49 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// ─── Response Interceptor ────────────────────────────────────────────────────
+// ─── Response Interceptor (single-flight token refresh) ─────────────────────
+// Concurrent 401s share ONE refresh call, so token rotation doesn't invalidate
+// the others. The rotated refreshToken is persisted for the next cycle.
+let refreshPromise: Promise<string> | null = null
+
+function doRefresh(): Promise<string> {
+  if (!refreshPromise) {
+    const refreshToken = localStorage.getItem('refreshToken')
+    refreshPromise = axios
+      .post(`${API_BASE_URL}/auth/refresh`, { refreshToken }, { withCredentials: true })
+      .then((res) => {
+        const data = res.data?.data ?? res.data
+        localStorage.setItem('accessToken', data.accessToken)
+        if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken)
+        return data.accessToken as string
+      })
+      .finally(() => { refreshPromise = null })
+  }
+  return refreshPromise
+}
+
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error) => {
     const originalRequest = error.config
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Never try to refresh the auth calls themselves
+    const isAuthCall =
+      originalRequest?.url?.includes('/auth/refresh') ||
+      originalRequest?.url?.includes('/auth/login')
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthCall) {
       originalRequest._retry = true
       try {
-        const refreshToken = localStorage.getItem('refreshToken')
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refreshToken,
-        })
-        const { accessToken } = response.data.data
-        localStorage.setItem('accessToken', accessToken)
+        const accessToken = await doRefresh()
         originalRequest.headers.Authorization = `Bearer ${accessToken}`
         return api(originalRequest)
       } catch {
-        localStorage.clear()
-        window.location.href = '/login'
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        localStorage.removeItem('user')
+        localStorage.removeItem('tenantId')
+        if (!window.location.pathname.startsWith('/login')) window.location.href = '/login'
       }
     }
     return Promise.reject(error)

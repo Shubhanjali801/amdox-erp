@@ -1,0 +1,55 @@
+# Postgres backup — NFR: RPO < 15 min. Runs pg_dump every 15 minutes to a PVC,
+# keeping the latest ~96 dumps (~24h). Restore: pg_restore / psql < dump.sql
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pg-backups
+  namespace: amdox
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: amdox
+spec:
+  schedule: "*/15 * * * *"          # every 15 minutes → RPO < 15 min
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: pg-backup
+              image: postgres:17-alpine
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef: { name: amdox-secrets, key: POSTGRES_PASSWORD }
+              command:
+                - sh
+                - -c
+                - |
+                  set -e
+                  TS=$(date +%Y%m%d-%H%M%S)
+                  FILE=/backups/amdox-$TS.sql.gz
+                  echo "Backing up to $FILE"
+                  pg_dump -h postgres -U amdox -d amdox_erp | gzip > "$FILE"
+                  # Retention: keep newest 96 dumps (~24h at 15-min cadence)
+                  ls -1t /backups/amdox-*.sql.gz | tail -n +97 | xargs -r rm -f
+                  echo "Backup complete; current dumps:"
+                  ls -1 /backups | wc -l
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: pg-backups

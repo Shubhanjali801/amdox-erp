@@ -1,3 +1,12 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Amdox ERP — Production stack (single-box, Docker Compose)
+#
+#   frontend (nginx :80) ──serves SPA + proxies /api/v1──> backend :5000
+#   backend  ──> postgres :5432,  redis :6379,  ml-service :8000
+#
+# Deploy:  docker compose -f docker-compose.prod.yml up -d --build
+# Reads secrets from a .env file in this directory (see .env.production.example)
+# ─────────────────────────────────────────────────────────────────────────────
 version: '3.9'
 
 services:
@@ -6,12 +15,13 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: production
+      args:
+        # Relative URL → nginx proxies it to the backend. Works on any host.
+        VITE_API_BASE_URL: /api/v1
     container_name: amdox_frontend
     restart: always
     ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
+      - "80:80"                    # public entry point (HTTP)
     depends_on:
       - backend
     networks:
@@ -24,12 +34,17 @@ services:
       target: production
     container_name: amdox_backend
     restart: always
-    ports:
-      - "5000:5000"
+    expose:
+      - "5000"                     # internal only; reached via frontend nginx
     env_file:
-      - .env
+      - .env                       # JWT secrets, Gmail creds, etc.
     environment:
-      - NODE_ENV=production
+      NODE_ENV: production
+      PORT: "5000"
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/amdox_erp
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      ML_SERVICE_URL: http://ml-service:8000
+      CORS_ORIGINS: ${CORS_ORIGINS}
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,17 +53,32 @@ services:
     networks:
       - amdox_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health/live"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/v1/health/live"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 20s
+
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: amdox_ml
+    restart: always
+    expose:
+      - "8000"                     # internal only; called by backend
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/amdox_erp
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - amdox_network
 
   postgres:
     image: postgres:17-alpine
     container_name: amdox_postgres_prod
     restart: always
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -67,32 +97,16 @@ services:
     image: redis:7.2-alpine
     container_name: amdox_redis_prod
     restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_prod_data:/data
     networks:
       - amdox_network
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 3
-
-  nginx:
-    image: nginx:alpine
-    container_name: amdox_nginx
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx/ssl
-    depends_on:
-      - frontend
-      - backend
-    networks:
-      - amdox_network
 
 volumes:
   postgres_prod_data:

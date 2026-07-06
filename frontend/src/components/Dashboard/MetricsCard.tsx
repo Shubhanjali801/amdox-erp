@@ -17,13 +17,13 @@ const accents: Record<string, string> = {
 };
 
 const MetricsCard: React.FC<Props> = ({ label, value, icon, hint, accent = 'blue' }) => (
-  <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
+  <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
     <div className="flex items-center justify-between">
-      <span className="text-gray-400 text-sm">{label}</span>
+      <span className="text-gray-500 dark:text-gray-400 text-sm">{label}</span>
       {icon && <span className="text-xl">{icon}</span>}
     </div>
     <div className={`mt-2 text-2xl font-bold ${accents[accent]}`}>{value}</div>
-    {hint && <p className="text-gray-500 text-xs mt-1">{hint}</p>}
+    {hint && <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">{hint}</p>}
   </div>
 );
 

@@ -1,0 +1,49 @@
+# Ingress (Traefik ships with k3s). Routes:
+#   /api  → backend
+#   /     → frontend
+# TLS via cert-manager (Let's Encrypt). Replace <DOMAIN> and <EMAIL>.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: amdox-ingress
+  namespace: amdox
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: ["<DOMAIN>"]
+      secretName: amdox-tls
+  rules:
+    - host: <DOMAIN>
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port: { number: 5000 }
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port: { number: 80 }
+---
+# Let's Encrypt issuer (apply once; needs cert-manager installed).
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: <EMAIL>
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+      - http01:
+          ingress:
+            class: traefik

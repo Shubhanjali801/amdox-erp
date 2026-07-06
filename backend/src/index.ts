@@ -13,6 +13,7 @@ import { logger } from './utils/logger'
 import { requestLogger } from './middleware/requestLogger.middleware'
 import { errorHandler } from './middleware/errorHandler.middleware'
 import { globalRateLimiter } from './middleware/rateLimiter.middleware'
+import { metricsMiddleware, metricsHandler } from './config/metrics'
 import router from './routes/index'
 
 const app = express()
@@ -27,8 +28,12 @@ app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 app.use(cookieParser())
 
-// ─── Request Logging ─────────────────────────────────────────────────────────
+// ─── Request Logging + Metrics ───────────────────────────────────────────────
 app.use(requestLogger)
+app.use(metricsMiddleware)
+
+// Prometheus scrape endpoint
+app.get('/metrics', metricsHandler)
 
 // ─── Swagger API Docs ────────────────────────────────────────────────────────
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))

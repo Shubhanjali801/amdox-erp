@@ -1,0 +1,46 @@
+# Backend (Express + Prisma). Image is built on the node and imported into k3s
+# (see k8s/deploy-k3s.sh), so we use a local tag + IfNotPresent — no registry needed.
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: amdox
+spec:
+  selector: { app: backend }
+  ports:
+    - port: 5000
+      targetPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: amdox
+spec:
+  replicas: 2                       # 2 replicas → HA / rolling deploys
+  selector:
+    matchLabels: { app: backend }
+  template:
+    metadata:
+      labels: { app: backend }
+    spec:
+      containers:
+        - name: backend
+          image: amdox-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - configMapRef: { name: amdox-config }
+            - secretRef:    { name: amdox-secrets }
+          readinessProbe:
+            httpGet: { path: /api/v1/health/ready, port: 5000 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /api/v1/health/live, port: 5000 }
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits:   { cpu: "1",    memory: "512Mi" }

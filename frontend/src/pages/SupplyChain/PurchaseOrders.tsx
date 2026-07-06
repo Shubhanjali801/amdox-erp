@@ -40,10 +40,16 @@ export default function PurchaseOrders() {
     )},
   ]
 
-  const setLine = (i: number, k: string, v: any) => {
-    const lines = [...form.lineItems]; lines[i] = { ...lines[i], [k]: v }; setForm({ ...form, lineItems: lines })
-  }
-  const addLine = () => setForm({ ...form, lineItems: [...form.lineItems, { inventoryItemId: '', description: '', quantity: 1, unitPrice: 0 }] })
+  // Patch one or more fields of line i in a single state update (functional, so
+  // multiple keys don't clobber each other).
+  const patchLine = (i: number, patch: Record<string, any>) =>
+    setForm((prev: any) => {
+      const lines = [...prev.lineItems]
+      lines[i] = { ...lines[i], ...patch }
+      return { ...prev, lineItems: lines }
+    })
+  const setLine = (i: number, k: string, v: any) => patchLine(i, { [k]: v })
+  const addLine = () => setForm((prev: any) => ({ ...prev, lineItems: [...prev.lineItems, { inventoryItemId: '', description: '', quantity: 1, unitPrice: 0 }] }))
 
   const create = async () => {
     setSaving(true)
@@ -106,8 +112,9 @@ export default function PurchaseOrders() {
               <div key={i} className="grid grid-cols-12 gap-2">
                 <select className={`${field} col-span-4`} value={l.inventoryItemId} onChange={(e) => {
                   const it = items.find((x: any) => x.id === e.target.value)
-                  setLine(i, 'inventoryItemId', e.target.value)
-                  if (it) { setLine(i, 'description', it.name); setLine(i, 'unitPrice', num(it.unitCost)) }
+                  patchLine(i, it
+                    ? { inventoryItemId: e.target.value, description: it.name, unitPrice: num(it.unitCost) }
+                    : { inventoryItemId: e.target.value })
                 }}>
                   <option value="">Item (optional)</option>
                   {items.map((it: any) => <option key={it.id} value={it.id}>{it.sku} — {it.name}</option>)}

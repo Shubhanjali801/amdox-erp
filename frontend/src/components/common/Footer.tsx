@@ -1,7 +1,7 @@
 import React from 'react';
 
 const Footer: React.FC = () => (
-  <footer className="bg-gray-900 border-t border-gray-800 px-6 py-5 flex items-center justify-between text-xs text-gray-500">
+  <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-6 py-5 flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
     <span>
       © {new Date().getFullYear()}{' '}
       <a href="https://www.amdox.in/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300">

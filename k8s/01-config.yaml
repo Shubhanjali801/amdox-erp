@@ -1,0 +1,43 @@
+# Non-secret config shared by services.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: amdox-config
+  namespace: amdox
+data:
+  NODE_ENV: "production"
+  PORT: "5000"
+  # In-cluster service DNS names (see services below)
+  ML_SERVICE_URL: "http://ml-service:8000"
+  # Public URLs — replace <DOMAIN> with your domain / DuckDNS host
+  CLIENT_URL: "https://<DOMAIN>"
+  FRONTEND_URL: "https://<DOMAIN>"
+  CORS_ORIGINS: "https://<DOMAIN>"
+---
+# Secrets — DO NOT commit real values. Create from the CLI instead:
+#
+#   kubectl -n amdox create secret generic amdox-secrets \
+#     --from-literal=DATABASE_URL='postgresql://amdox:STRONGPASS@postgres:5432/amdox_erp' \
+#     --from-literal=REDIS_URL='redis://redis:6379' \
+#     --from-literal=JWT_SECRET='<random>' \
+#     --from-literal=JWT_REFRESH_SECRET='<random>' \
+#     --from-literal=POSTGRES_PASSWORD='STRONGPASS' \
+#     --from-literal=GMAIL_USER='you@gmail.com' \
+#     --from-literal=GMAIL_APP_PASSWORD='xxxxxxxxxxxxxxxx'
+#
+# This stub exists only so `kubectl apply -f k8s/` doesn't fail if you prefer YAML.
+# Fill placeholders and `kubectl apply` it, OR use the CLI command above (recommended).
+apiVersion: v1
+kind: Secret
+metadata:
+  name: amdox-secrets
+  namespace: amdox
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql://amdox:CHANGE_ME@postgres:5432/amdox_erp"
+  REDIS_URL: "redis://redis:6379"
+  JWT_SECRET: "CHANGE_ME_long_random"
+  JWT_REFRESH_SECRET: "CHANGE_ME_long_random_2"
+  POSTGRES_PASSWORD: "CHANGE_ME"
+  GMAIL_USER: ""
+  GMAIL_APP_PASSWORD: ""
