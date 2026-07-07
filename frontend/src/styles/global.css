@@ -49,4 +49,11 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  /* Form controls otherwise inherit the body's foreground colour (white in dark
+     mode), which becomes white-on-white on light cards. Give them a sensible
+     theme-aware default; explicit Tailwind colour utilities still override. */
+  input, textarea, select {
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--background));
+  }
 }

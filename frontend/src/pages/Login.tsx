@@ -78,7 +78,7 @@ export default function Login() {
               inputMode="numeric"
               maxLength={6}
               autoFocus
-              className="w-full px-4 py-3 text-center text-2xl tracking-[0.5em] rounded border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-4 py-3 text-center text-2xl tracking-[0.5em] rounded border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="000000"
             />
             <button
@@ -99,7 +99,7 @@ export default function Login() {
             <input
               {...register('email')}
               type="email"
-              className="w-full px-4 py-2 rounded border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-4 py-2 rounded border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="you@company.com"
             />
             {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
@@ -110,7 +110,7 @@ export default function Login() {
             <input
               {...register('password')}
               type="password"
-              className="w-full px-4 py-2 rounded border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-4 py-2 rounded border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="••••••••"
             />
             {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}

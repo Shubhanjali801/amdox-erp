@@ -58,11 +58,11 @@ ream.md
 .vscode
 .venv
 /postman
-
-/ml-service
-ml-service/README.md
-ml-service/.env
-ml-service/save_models
+# 
+# /ml-service
+# ml-service/README.md
+# ml-service/.env
+# ml-service/save_models
 
 
 backend/src/db/check-inventory.ts
@@ -70,4 +70,7 @@ backend/src/db/seed-forecast-all.ts
 backend/src/db/seed-forecast-amdox.ts
 Amdox ERP — Backend.postman_Response&Request_collection.json
 postman_collection.json
-Response&Request_collection.json
+Response&Request_collection.jsonk8s/deploy.env
+amdox-erp\k8s\deploy.env
+k8s\deploy.env
+deploy.env
