@@ -3,6 +3,10 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Prisma needs openssl on Alpine to detect libssl and fetch the correct musl
+# engine. Must be installed BEFORE npm install (Prisma downloads engines then).
+RUN apk add --no-cache openssl
+
 # Install ALL deps (build needs devDependencies like typescript, prisma)
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
@@ -21,6 +25,9 @@ RUN npm run build || true
 FROM node:20-alpine AS production
 
 WORKDIR /app
+
+# Runtime also needs openssl so Prisma's engine loads libssl correctly.
+RUN apk add --no-cache openssl
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nodeuser -u 1001
 
