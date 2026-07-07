@@ -8,8 +8,10 @@ numpy==1.26.4
 pandas==2.2.2
 scikit-learn==1.5.0
 prophet==1.1.5
-# LSTM model uses PyTorch (per AMX-ERP-2026 spec)
-torch==2.3.1
+# LSTM model uses PyTorch (per AMX-ERP-2026 spec).
+# NOTE: torch is installed separately in the Dockerfile from the CPU-only wheel
+# index — the default PyPI wheel drags in ~6GB of NVIDIA CUDA libs we don't use
+# (no GPU on the server) and blows the disk. See ml-service/Dockerfile.
 
 # ─── Database (read historical sales from PostgreSQL) ────
 asyncpg==0.29.0
