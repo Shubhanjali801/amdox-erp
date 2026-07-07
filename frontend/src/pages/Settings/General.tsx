@@ -38,7 +38,7 @@ export default function General() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold text-white">General Settings</h1>
+        {/* <h1 className="text-2xl font-bold text-white">General Settings</h1> */}
         <p className="text-gray-400 text-sm mt-1">Your company profile and preferences</p>
       </div>
 

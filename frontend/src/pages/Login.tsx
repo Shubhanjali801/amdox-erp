@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
 import { authService } from '../services/authService'
+import { firstAccessiblePath } from '../utils/permissions'
 import PublicNavbar from '../components/common/PublicNavbar'
 
 const schema = z.object({
@@ -31,7 +32,8 @@ export default function Login() {
       return
     }
     toast.success('Welcome back!')
-    navigate('/dashboard')
+    // Land on the first area this user's role can access (not always /dashboard)
+    navigate(firstAccessiblePath())
   }
 
   const onSubmit = async (data: LoginData) => {

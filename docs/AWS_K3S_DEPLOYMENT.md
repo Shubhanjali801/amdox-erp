@@ -113,10 +113,21 @@ automatically.
 ## Step 6 — Seed demo data (optional but recommended for the demo)
 
 ```bash
-# exec into a running backend pod and run the seeders
+# exec into a running backend pod and run the compiled seeders
 POD=$(sudo k3s kubectl -n amdox get pod -l app=backend -o jsonpath='{.items[0].metadata.name}')
-sudo k3s kubectl -n amdox exec -it "$POD" -- npx prisma db seed
+sudo k3s kubectl -n amdox exec -it "$POD" -- node dist/db/seeds/index.js
 ```
+
+This creates the demo tenant, the 8 roles, and role-scoped demo logins:
+
+| Login | Password | Sees |
+|---|---|---|
+| `admin@amdox.com` | `Admin@1234` | Everything (super admin) |
+| `finance@amdox.com` | `Finance@1234` | **Finance only** |
+| `hr@amdox.com` | `HR@1234` | **HR & Payroll only** |
+| `supply@amdox.com` | `Supply@1234` | **Supply Chain only** |
+| `pm@amdox.com` | `PM@1234` | **Projects only** |
+| `viewer@amdox.com` | `Viewer@1234` | Read-only, all modules |
 
 ---
 

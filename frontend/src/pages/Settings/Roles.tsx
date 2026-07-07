@@ -60,7 +60,7 @@ export default function Roles() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Roles &amp; Permissions</h1>
+          {/* <h1 className="text-2xl font-bold text-white">Roles &amp; Permissions</h1> */}
           <p className="text-gray-400 text-sm mt-1">Control what each role can access</p>
         </div>
         <button onClick={() => setOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition">

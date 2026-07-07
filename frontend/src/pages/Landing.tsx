@@ -1,5 +1,6 @@
 import { useNavigate, Navigate } from 'react-router-dom'
 import PublicNavbar from '../components/common/PublicNavbar'
+import { firstAccessiblePath } from '../utils/permissions'
 
 const modules = [
   { icon: '💰', name: 'Finance', desc: 'Ledger, AP/AR, payments, multi-currency' },
@@ -19,8 +20,8 @@ const features = [
 
 export default function Landing() {
   const navigate = useNavigate()
-  // Logged-in users skip the marketing page
-  if (localStorage.getItem('accessToken')) return <Navigate to="/dashboard" replace />
+  // Logged-in users skip the marketing page → their first accessible area
+  if (localStorage.getItem('accessToken')) return <Navigate to={firstAccessiblePath()} replace />
 
   return (
     <div className="min-h-screen bg-white">

@@ -9,6 +9,12 @@ export async function seedDashboard(
 ) {
   console.log('📊 Seeding dashboard data...')
 
+  // Idempotent: clear artifacts from a previous seed run so re-seeding doesn't
+  // collide on the fixed widget ids (w1..w6) or duplicate dashboards/reports.
+  await prisma.widget.deleteMany({ where: { id: { in: ['w1', 'w2', 'w3', 'w4', 'w5', 'w6'] } } })
+  await prisma.dashboard.deleteMany({ where: { tenantId } })
+  await prisma.scheduledReport.deleteMany({ where: { tenantId } })
+
   const dashboard = await prisma.dashboard.create({
     data: {
       tenantId,

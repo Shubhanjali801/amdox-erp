@@ -40,7 +40,7 @@ export default function Appearance() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Appearance</h2>
+        {/* <h2 className="text-xl font-bold text-gray-900 dark:text-white">Appearance</h2> */}
         <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Choose how Amdox ERP looks. Saved to this browser.</p>
       </div>
 

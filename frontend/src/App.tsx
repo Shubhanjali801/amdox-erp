@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import Layout from './components/common/Layout'
 import PrivateRoute from './components/Auth/PrivateRoute'
+import RequirePermission from './components/Auth/RequirePermission'
 import SettingsLayout from './components/Settings/SettingsLayout'
 import SupplyChainLayout from './components/SupplyChain/SupplyChainLayout'
 import FinanceLayout from './components/Finance/FinanceLayout'
@@ -14,6 +15,7 @@ import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import NotFound from './pages/NotFound'
+import NoAccess from './pages/NoAccess'
 
 // Lazy-loaded pages
 const Dashboard      = lazy(() => import('./pages/Dashboard'))
@@ -77,48 +79,63 @@ export default function App() {
       {/* Protected — requires JWT, rendered inside Layout shell */}
       <Route element={<PrivateRoute />}>
         <Route element={<ProtectedLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/no-access" element={<NoAccess />} />
 
-          {/* Finance */}
-          <Route path="/finance" element={<FinanceLayout />}>
-            <Route index element={<Ledger />} />
-            <Route path="ledger"      element={<Ledger />} />
-            <Route path="payables"    element={<Payables />} />
-            <Route path="receivables" element={<Receivables />} />
-            <Route path="reports"     element={<FinReports />} />
+          {/* Dashboard */}
+          <Route element={<RequirePermission perms={['dashboard:read']} />}>
+            <Route path="/dashboard" element={<Dashboard />} />
           </Route>
 
-          {/* HR */}
-          <Route path="/hr" element={<HRLayout />}>
-            <Route index element={<Employees />} />
-            <Route path="employees"  element={<Employees />} />
-            <Route path="attendance" element={<Attendance />} />
-            <Route path="leave"      element={<Leave />} />
-            <Route path="payroll"    element={<Payroll />} />
+          {/* Finance — needs finance:read */}
+          <Route element={<RequirePermission perms={['finance:read']} />}>
+            <Route path="/finance" element={<FinanceLayout />}>
+              <Route index element={<Ledger />} />
+              <Route path="ledger"      element={<Ledger />} />
+              <Route path="payables"    element={<Payables />} />
+              <Route path="receivables" element={<Receivables />} />
+              <Route path="reports"     element={<FinReports />} />
+            </Route>
           </Route>
 
-          {/* Projects */}
-          <Route path="/projects"           element={<ProjectsList />} />
-          <Route path="/projects/resources" element={<ResourcePlanning />} />
-          <Route path="/projects/:id"       element={<ProjectDetail />} />
-
-          {/* Supply Chain */}
-          <Route path="/supply-chain" element={<SupplyChainLayout />}>
-            <Route index element={<Vendors />} />
-            <Route path="vendors"         element={<Vendors />} />
-            <Route path="inventory"       element={<Inventory />} />
-            <Route path="purchase-orders" element={<PurchaseOrders />} />
-            <Route path="forecasting"     element={<Forecasting />} />
+          {/* HR — needs hr:read */}
+          <Route element={<RequirePermission perms={['hr:read']} />}>
+            <Route path="/hr" element={<HRLayout />}>
+              <Route index element={<Employees />} />
+              <Route path="employees"  element={<Employees />} />
+              <Route path="attendance" element={<Attendance />} />
+              <Route path="leave"      element={<Leave />} />
+              <Route path="payroll"    element={<Payroll />} />
+            </Route>
           </Route>
 
-          {/* Settings */}
-          <Route path="/settings" element={<SettingsLayout />}>
-            <Route index element={<SettingsGeneral />} />
-            <Route path="users" element={<SettingsUsers />} />
-            <Route path="roles" element={<SettingsRoles />} />
-            <Route path="security" element={<SettingsSecurity />} />
-            <Route path="appearance" element={<SettingsAppearance />} />
-            <Route path="integrations" element={<SettingsIntegrations />} />
+          {/* Projects — needs project:read */}
+          <Route element={<RequirePermission perms={['project:read']} />}>
+            <Route path="/projects"           element={<ProjectsList />} />
+            <Route path="/projects/resources" element={<ResourcePlanning />} />
+            <Route path="/projects/:id"       element={<ProjectDetail />} />
+          </Route>
+
+          {/* Supply Chain — needs supply_chain:read */}
+          <Route element={<RequirePermission perms={['supply_chain:read']} />}>
+            <Route path="/supply-chain" element={<SupplyChainLayout />}>
+              <Route index element={<Vendors />} />
+              <Route path="vendors"         element={<Vendors />} />
+              <Route path="inventory"       element={<Inventory />} />
+              <Route path="purchase-orders" element={<PurchaseOrders />} />
+              <Route path="forecasting"     element={<Forecasting />} />
+            </Route>
+          </Route>
+
+          {/* Settings — admins only (settings:read / user:read) */}
+          <Route element={<RequirePermission perms={['settings:read', 'user:read', 'settings:update']} />}>
+            <Route path="/settings" element={<SettingsLayout />}>
+              <Route index element={<SettingsGeneral />} />
+              <Route path="users" element={<SettingsUsers />} />
+              <Route path="roles" element={<SettingsRoles />} />
+              <Route path="security" element={<SettingsSecurity />} />
+              <Route path="appearance" element={<SettingsAppearance />} />
+              <Route path="integrations" element={<SettingsIntegrations />} />
+            </Route>
           </Route>
         </Route>
       </Route>

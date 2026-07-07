@@ -57,7 +57,7 @@ export default function Security() {
   return (
     <div className="space-y-6 max-w-xl">
       <div>
-        <h2 className="text-xl font-bold text-white">Security</h2>
+        {/* <h2 className="text-xl font-bold text-white">Security</h2> */}
         <p className="text-gray-400 text-sm mt-1">Protect your account with two-factor authentication (2FA)</p>
       </div>
 

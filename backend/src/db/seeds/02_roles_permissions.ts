@@ -132,6 +132,47 @@ export async function seedRolesAndPermissions(
     }
   }
 
-  console.log(`   ✅ ${PERMISSIONS.length} permissions + 4 roles created`)
-  return { superAdmin, tenantAdmin, manager, viewer }
+  // ── Department-scoped roles ──────────────────────────────────
+  // Each role is limited to ONE module (+ dashboard) so RBAC is visible:
+  // a finance_manager sees only Finance, an hr_manager only HR, etc.
+  const deptRoles: Record<string, { desc: string; perms: string[] }> = {
+    finance_manager: {
+      desc: 'Finance module only',
+      perms: ['finance:create','finance:read','finance:update','finance:delete','finance:approve','finance:export'],
+    },
+    hr_manager: {
+      desc: 'HR & Payroll module only',
+      perms: ['hr:create','hr:read','hr:update','hr:delete','hr:approve','hr:run_payroll'],
+    },
+    supply_chain_manager: {
+      desc: 'Supply Chain module only',
+      perms: ['supply_chain:create','supply_chain:read','supply_chain:update','supply_chain:delete','supply_chain:approve'],
+    },
+    project_manager: {
+      desc: 'Projects module only',
+      perms: ['project:create','project:read','project:update','project:delete'],
+    },
+  }
+
+  const dept: Record<string, any> = {}
+  for (const [name, def] of Object.entries(deptRoles)) {
+    const role = await prisma.role.upsert({
+      where: { tenantId_name: { tenantId, name } },
+      update: {},
+      create: { tenantId, name, isSystem: true, description: def.desc },
+    })
+    for (const key of def.perms) {
+      if (permMap[key]) {
+        await prisma.rolePermission.upsert({
+          where: { roleId_permissionId: { roleId: role.id, permissionId: permMap[key] } },
+          update: {},
+          create: { roleId: role.id, permissionId: permMap[key] },
+        })
+      }
+    }
+    dept[name] = role
+  }
+
+  console.log(`   ✅ ${PERMISSIONS.length} permissions + 8 roles created`)
+  return { superAdmin, tenantAdmin, manager, viewer, ...dept }
 }
