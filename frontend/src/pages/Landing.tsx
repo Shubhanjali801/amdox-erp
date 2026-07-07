@@ -79,7 +79,7 @@ export default function Landing() {
       </section>
 
       {/* Features */}
-      <section id="why" className="max-w-7xl mx-auto px-6 py-20">
+      <section id="features" className="max-w-7xl mx-auto px-6 py-20">
         <h2 className="text-3xl font-bold text-center text-gray-900 mb-3">Why Amdox ERP</h2>
         <p className="text-center text-gray-500 mb-12">What sets us apart from SAP, Odoo, Dynamics 365 and NetSuite</p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">

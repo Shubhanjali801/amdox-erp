@@ -35,7 +35,6 @@ const PublicNavbar: React.FC = () => {
         <nav className="hidden md:flex items-center gap-8 text-sm text-gray-600">
           <a href="#features" className="hover:text-blue-600">Features</a>
           <a href="#modules" className="hover:text-blue-600">Modules</a>
-          <a href="#why" className="hover:text-blue-600">Why Amdox</a>
         </nav>
 
         {/* Sign in / Get started — upper right */}
