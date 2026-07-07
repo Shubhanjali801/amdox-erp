@@ -6,8 +6,10 @@ interface ThemeContextType { theme: Theme; toggleTheme: () => void; setTheme: (t
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Default to light — the landing/auth pages are light-first, so a fresh
+  // visitor (no saved preference) must not land in dark mode (white-on-white).
   const [theme, setThemeState] = useState<Theme>(
-    () => (localStorage.getItem('theme') as Theme) || 'dark'
+    () => (localStorage.getItem('theme') as Theme) || 'light'
   )
 
   // Reflect on <html> so Tailwind's `dark:` variants activate, and persist.
