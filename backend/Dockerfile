@@ -36,6 +36,10 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 COPY package*.json ./
 
+# The app's winston file transport writes to /app/logs — create it and make it
+# writable by the non-root user, otherwise startup fails with EACCES on mkdir.
+RUN mkdir -p /app/logs && chown -R nodeuser:nodejs /app/logs
+
 USER nodeuser
 
 EXPOSE 5000
