@@ -48,6 +48,7 @@ $KUBECTL -n amdox create configmap amdox-config \
   --from-literal=NODE_ENV=production \
   --from-literal=PORT=5000 \
   --from-literal=ML_SERVICE_URL=http://ml-service:8000 \
+  --from-literal=ML_SERVICE_API_KEY=dev_ml_api_key_change_in_prod \
   --from-literal=CLIENT_URL="https://$DOMAIN" \
   --from-literal=FRONTEND_URL="https://$DOMAIN" \
   --from-literal=CORS_ORIGINS="https://$DOMAIN" \
