@@ -74,3 +74,4 @@ Response&Request_collection.jsonk8s/deploy.env
 amdox-erp\k8s\deploy.env
 k8s\deploy.env
 deploy.env
+startawsliveurl.md

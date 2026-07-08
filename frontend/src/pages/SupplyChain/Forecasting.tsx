@@ -44,7 +44,7 @@ export default function Forecasting() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">AI Demand Forecasting</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AI Demand Forecasting</h1>
           <p className="text-gray-400 text-sm mt-1">LSTM / Prophet demand prediction (needs 6+ months of history)</p>
         </div>
         <span className={`text-xs px-3 py-1 rounded-full ${mlUp ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`}>
