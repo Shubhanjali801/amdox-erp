@@ -10,8 +10,8 @@ r.use(authenticate);
 r.get('/convert', requirePermission('finance:read'),  ctrl.convert);
 r.get('/',        requirePermission('finance:read'),  ctrl.getAll);
 r.get('/:id',     requirePermission('finance:read'),  ctrl.getById);
-r.post('/',       requirePermission('finance:write'), ctrl.create);
-r.put('/:id',     requirePermission('finance:write'), ctrl.update);
-r.delete('/:id',  requirePermission('finance:write'), ctrl.remove);
+r.post('/',       requirePermission('finance:create'), ctrl.create);
+r.put('/:id',     requirePermission('finance:create'), ctrl.update);
+r.delete('/:id',  requirePermission('finance:create'), ctrl.remove);
 
 export default r;

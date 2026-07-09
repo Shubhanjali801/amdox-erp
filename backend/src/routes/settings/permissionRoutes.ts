@@ -7,10 +7,10 @@ import { createPermissionSchema } from '../../validators/settings.validator';
 const r = Router();
 r.use(authenticate);
 
-r.get('/',       requirePermission('users:read'),  ctrl.getAll);
-r.get('/:id',    requirePermission('users:read'),  ctrl.getById);
-r.post('/',      requirePermission('users:write'), validate(createPermissionSchema), ctrl.create);
-r.put('/:id',    requirePermission('users:write'), ctrl.update);   // 405 (immutable)
-r.delete('/:id', requirePermission('users:write'), ctrl.remove);
+r.get('/',       requirePermission('user:read'),  ctrl.getAll);
+r.get('/:id',    requirePermission('user:read'),  ctrl.getById);
+r.post('/',      requirePermission('user:create'), validate(createPermissionSchema), ctrl.create);
+r.put('/:id',    requirePermission('user:create'), ctrl.update);   // 405 (immutable)
+r.delete('/:id', requirePermission('user:create'), ctrl.remove);
 
 export default r;

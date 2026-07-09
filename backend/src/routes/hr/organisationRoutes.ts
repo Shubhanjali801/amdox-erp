@@ -10,8 +10,8 @@ r.use(authenticate);
 
 r.get('/',       requirePermission('hr:read'),  ctrl.getAll);
 r.get('/:id',    requirePermission('hr:read'),  ctrl.getById);
-r.post('/',      requirePermission('hr:write'), validate(createDeptSchema), ctrl.create);
-r.put('/:id',    requirePermission('hr:write'), validate(updateDeptSchema), ctrl.update);
-r.delete('/:id', requirePermission('hr:write'), ctrl.remove);
+r.post('/',      requirePermission('hr:create'), validate(createDeptSchema), ctrl.create);
+r.put('/:id',    requirePermission('hr:create'), validate(updateDeptSchema), ctrl.update);
+r.delete('/:id', requirePermission('hr:create'), ctrl.remove);
 
 export default r;

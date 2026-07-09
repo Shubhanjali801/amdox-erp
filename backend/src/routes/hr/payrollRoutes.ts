@@ -6,12 +6,12 @@ const r = Router();
 r.use(authenticate);
 
 // single payslip (before /:id so it isn't matched as a run id)
-r.get('/payslip/:id', requirePermission('payroll:read'), ctrl.getPayslip);
+r.get('/payslip/:id', requirePermission('hr:read'), ctrl.getPayslip);
 
-r.get('/',       requirePermission('payroll:read'),    ctrl.getAll);
-r.get('/:id',    requirePermission('payroll:read'),    ctrl.getById);
-r.post('/',      requirePermission('payroll:approve'), ctrl.create);   // run payroll
-r.put('/:id',    requirePermission('payroll:approve'), ctrl.update);
-r.delete('/:id', requirePermission('payroll:approve'), ctrl.remove);
+r.get('/',       requirePermission('hr:read'),    ctrl.getAll);
+r.get('/:id',    requirePermission('hr:read'),    ctrl.getById);
+r.post('/',      requirePermission('hr:run_payroll'), ctrl.create);   // run payroll
+r.put('/:id',    requirePermission('hr:run_payroll'), ctrl.update);
+r.delete('/:id', requirePermission('hr:run_payroll'), ctrl.remove);
 
 export default r;

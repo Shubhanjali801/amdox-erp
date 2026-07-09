@@ -8,11 +8,11 @@ const r = Router();
 r.use(authenticate);
 
 // Webhooks are tenant-level integration config → admin (users:write)
-r.get('/',         requirePermission('users:read'),  ctrl.getAll);
-r.get('/:id',      requirePermission('users:read'),  ctrl.getById);
-r.post('/',        requirePermission('users:write'), validate(createWebhookSchema), ctrl.create);
-r.put('/:id',      requirePermission('users:write'), validate(updateWebhookSchema), ctrl.update);
-r.delete('/:id',   requirePermission('users:write'), ctrl.remove);
-r.post('/:id/test', requirePermission('users:write'), ctrl.test);
+r.get('/',         requirePermission('user:read'),  ctrl.getAll);
+r.get('/:id',      requirePermission('user:read'),  ctrl.getById);
+r.post('/',        requirePermission('user:create'), validate(createWebhookSchema), ctrl.create);
+r.put('/:id',      requirePermission('user:create'), validate(updateWebhookSchema), ctrl.update);
+r.delete('/:id',   requirePermission('user:create'), ctrl.remove);
+r.post('/:id/test', requirePermission('user:create'), ctrl.test);
 
 export default r;

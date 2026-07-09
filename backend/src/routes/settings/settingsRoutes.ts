@@ -7,7 +7,7 @@ import { updateSettingsSchema } from '../../validators/settings.validator';
 const r = Router();
 r.use(authenticate);
 
-r.get('/',  requirePermission('users:read'),  ctrl.getAll);
-r.put('/',  requirePermission('users:write'), validate(updateSettingsSchema), ctrl.update);
+r.get('/',  requirePermission('user:read'),  ctrl.getAll);
+r.put('/',  requirePermission('user:create'), validate(updateSettingsSchema), ctrl.update);
 
 export default r;

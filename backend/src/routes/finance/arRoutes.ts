@@ -10,9 +10,9 @@ r.use(authenticate);
 
 r.get('/',             requirePermission('finance:read'),    ctrl.getAll);
 r.get('/:id',          requirePermission('finance:read'),    ctrl.getById);
-r.post('/',            requirePermission('finance:write'),   validate(createArSchema), ctrl.create);
+r.post('/',            requirePermission('finance:create'),   validate(createArSchema), ctrl.create);
 r.post('/:id/approve', requirePermission('finance:approve'), ctrl.approve);
-r.put('/:id',          requirePermission('finance:write'),   validate(updateArSchema), ctrl.update);
-r.delete('/:id',       requirePermission('finance:write'),   ctrl.remove);
+r.put('/:id',          requirePermission('finance:create'),   validate(updateArSchema), ctrl.update);
+r.delete('/:id',       requirePermission('finance:create'),   ctrl.remove);
 
 export default r;

@@ -7,14 +7,14 @@ import { createProjectSchema, updateProjectSchema, createMilestoneSchema } from 
 const r = Router();
 r.use(authenticate);
 
-r.get('/',       requirePermission('projects:read'),  ctrl.getAll);
-r.get('/:id',    requirePermission('projects:read'),  ctrl.getById);
-r.post('/',      requirePermission('projects:write'), validate(createProjectSchema), ctrl.create);
-r.put('/:id',    requirePermission('projects:write'), validate(updateProjectSchema), ctrl.update);
-r.delete('/:id', requirePermission('projects:write'), ctrl.remove);
+r.get('/',       requirePermission('project:read'),  ctrl.getAll);
+r.get('/:id',    requirePermission('project:read'),  ctrl.getById);
+r.post('/',      requirePermission('project:create'), validate(createProjectSchema), ctrl.create);
+r.put('/:id',    requirePermission('project:create'), validate(updateProjectSchema), ctrl.update);
+r.delete('/:id', requirePermission('project:create'), ctrl.remove);
 
 // Milestones
-r.get('/:id/milestones',  requirePermission('projects:read'),  ctrl.listMilestones);
-r.post('/:id/milestones', requirePermission('projects:write'), validate(createMilestoneSchema), ctrl.addMilestone);
+r.get('/:id/milestones',  requirePermission('project:read'),  ctrl.listMilestones);
+r.post('/:id/milestones', requirePermission('project:create'), validate(createMilestoneSchema), ctrl.addMilestone);
 
 export default r;

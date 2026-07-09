@@ -7,14 +7,14 @@ import { createRoleSchema, updateRoleSchema, assignRoleSchema } from '../../vali
 const r = Router();
 r.use(authenticate);
 
-r.get('/',       requirePermission('users:read'),  ctrl.getAll);
-r.get('/:id',    requirePermission('users:read'),  ctrl.getById);
-r.post('/',      requirePermission('users:write'), validate(createRoleSchema), ctrl.create);
-r.put('/:id',    requirePermission('users:write'), validate(updateRoleSchema), ctrl.update);
-r.delete('/:id', requirePermission('users:write'), ctrl.remove);
+r.get('/',       requirePermission('user:read'),  ctrl.getAll);
+r.get('/:id',    requirePermission('user:read'),  ctrl.getById);
+r.post('/',      requirePermission('user:create'), validate(createRoleSchema), ctrl.create);
+r.put('/:id',    requirePermission('user:create'), validate(updateRoleSchema), ctrl.update);
+r.delete('/:id', requirePermission('user:create'), ctrl.remove);
 
 // Assign / revoke a role to a user
-r.post('/:id/assign', requirePermission('users:write'), validate(assignRoleSchema), ctrl.assign);
-r.post('/:id/revoke', requirePermission('users:write'), validate(assignRoleSchema), ctrl.revoke);
+r.post('/:id/assign', requirePermission('user:create'), validate(assignRoleSchema), ctrl.assign);
+r.post('/:id/revoke', requirePermission('user:create'), validate(assignRoleSchema), ctrl.revoke);
 
 export default r;

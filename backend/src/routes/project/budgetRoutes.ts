@@ -7,8 +7,8 @@ import { updateBudgetSchema } from '../../validators/project.validator';
 const r = Router();
 r.use(authenticate);
 
-r.get('/',       requirePermission('projects:read'),  ctrl.getAll);
-r.get('/:id',    requirePermission('projects:read'),  ctrl.getById);
-r.put('/:id',    requirePermission('projects:write'), validate(updateBudgetSchema), ctrl.update);
+r.get('/',       requirePermission('project:read'),  ctrl.getAll);
+r.get('/:id',    requirePermission('project:read'),  ctrl.getById);
+r.put('/:id',    requirePermission('project:create'), validate(updateBudgetSchema), ctrl.update);
 
 export default r;

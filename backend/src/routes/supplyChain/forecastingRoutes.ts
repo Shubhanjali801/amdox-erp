@@ -9,10 +9,10 @@ r.use(authenticate);
 // Health check for the ML microservice
 r.get('/health/ml', ctrl.mlHealth);
 
-r.get('/',       requirePermission('supply:read'),  ctrl.getAll);
-r.get('/:id',    requirePermission('supply:read'),  ctrl.getById);
-r.post('/',      requirePermission('supply:write'), ctrl.create);   // generate forecast (calls ML)
-r.put('/:id',    requirePermission('supply:write'), ctrl.update);
-r.delete('/:id', requirePermission('supply:write'), ctrl.remove);
+r.get('/',       requirePermission('supply_chain:read'),  ctrl.getAll);
+r.get('/:id',    requirePermission('supply_chain:read'),  ctrl.getById);
+r.post('/',      requirePermission('supply_chain:create'), ctrl.create);   // generate forecast (calls ML)
+r.put('/:id',    requirePermission('supply_chain:create'), ctrl.update);
+r.delete('/:id', requirePermission('supply_chain:create'), ctrl.remove);
 
 export default r;

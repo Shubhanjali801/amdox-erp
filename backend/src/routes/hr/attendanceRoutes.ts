@@ -7,8 +7,8 @@ r.use(authenticate);
 
 r.get('/',       requirePermission('hr:read'),  ctrl.getAll);
 r.get('/:id',    requirePermission('hr:read'),  ctrl.getById);
-r.post('/',      requirePermission('hr:write'), ctrl.create);
-r.put('/:id',    requirePermission('hr:write'), ctrl.update);
-r.delete('/:id', requirePermission('hr:write'), ctrl.remove);
+r.post('/',      requirePermission('hr:create'), ctrl.create);
+r.put('/:id',    requirePermission('hr:create'), ctrl.update);
+r.delete('/:id', requirePermission('hr:create'), ctrl.remove);
 
 export default r;
