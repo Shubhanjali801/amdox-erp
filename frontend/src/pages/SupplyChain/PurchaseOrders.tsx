@@ -21,6 +21,9 @@ export default function PurchaseOrders() {
 
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  // Which PO has an action in flight. Guards against double-clicks firing two
+  // concurrent requests (which would receive stock twice).
+  const [busy, setBusy] = useState<string | null>(null)
   const [form, setForm] = useState<any>({
     poNumber: '', vendorId: '', taxRate: 0,
     lineItems: [{ inventoryItemId: '', description: '', quantity: 1, unitPrice: 0 }],
@@ -33,9 +36,9 @@ export default function PurchaseOrders() {
     { key: 'status', header: 'Status', render: (p) => <span className={STATUS_COLORS[p.status] || ''}>{p.status}</span> },
     { key: 'actions', header: '', render: (p) => (
       <div className="flex gap-3">
-        {p.status === 'DRAFT' && <button onClick={() => send(p.id)} className="text-xs text-blue-400 hover:underline">send</button>}
-        {(p.status === 'SENT' || p.status === 'PARTIALLY_RECEIVED') && <button onClick={() => receive(p)} className="text-xs text-green-400 hover:underline">receive</button>}
-        {p.status !== 'RECEIVED' && p.status !== 'CANCELLED' && <button onClick={() => cancel(p.id)} className="text-xs text-red-400 hover:underline">cancel</button>}
+        {p.status === 'DRAFT' && <button disabled={busy === p.id} onClick={() => send(p.id)} className="text-xs text-blue-400 hover:underline disabled:opacity-40 disabled:no-underline">send</button>}
+        {(p.status === 'SENT' || p.status === 'PARTIALLY_RECEIVED') && <button disabled={busy === p.id} onClick={() => receive(p)} className="text-xs text-green-400 hover:underline disabled:opacity-40 disabled:no-underline">{busy === p.id ? 'receiving…' : 'receive'}</button>}
+        {p.status !== 'RECEIVED' && p.status !== 'CANCELLED' && <button disabled={busy === p.id} onClick={() => cancel(p.id)} className="text-xs text-red-400 hover:underline disabled:opacity-40 disabled:no-underline">cancel</button>}
       </div>
     )},
   ]
@@ -68,16 +71,33 @@ export default function PurchaseOrders() {
     finally { setSaving(false) }
   }
 
-  const send = async (id: string) => { try { await supplyChainService.sendPO(id); toast.success('PO sent'); posQ.refetch() } catch (e: any) { toast.error(e?.response?.data?.message || 'Failed') } }
-  const cancel = async (id: string) => { try { await supplyChainService.cancelPO(id); toast.success('PO cancelled'); posQ.refetch() } catch (e: any) { toast.error(e?.response?.data?.message || 'Failed') } }
+  const send = async (id: string) => {
+    if (busy) return
+    setBusy(id)
+    try { await supplyChainService.sendPO(id); toast.success('PO sent'); posQ.refetch() }
+    catch (e: any) { toast.error(e?.response?.data?.message || 'Failed') }
+    finally { setBusy(null) }
+  }
+
+  const cancel = async (id: string) => {
+    if (busy) return
+    setBusy(id)
+    try { await supplyChainService.cancelPO(id); toast.success('PO cancelled'); posQ.refetch() }
+    catch (e: any) { toast.error(e?.response?.data?.message || 'Failed') }
+    finally { setBusy(null) }
+  }
+
   const receive = async (p: any) => {
+    if (busy) return          // ignore a second click while the first is in flight
+    setBusy(p.id)
     try {
       const full = await supplyChainService.getPO(p.id)
       const lines = (full.lineItems || []).map((l: any) => ({ lineItemId: l.id, receivedQty: num(l.quantity) - num(l.receivedQty) })).filter((l: any) => l.receivedQty > 0)
-      if (!lines.length) return toast('Nothing left to receive', { icon: 'ℹ️' })
+      if (!lines.length) { toast('Nothing left to receive', { icon: 'ℹ️' }); return }
       await supplyChainService.receivePO(p.id, { lines })
       toast.success('Goods received → stock updated'); posQ.refetch()
     } catch (e: any) { toast.error(e?.response?.data?.message || 'Failed to receive') }
+    finally { setBusy(null) }
   }
 
   const field = 'w-full px-3 py-2 rounded bg-gray-900 border border-gray-700 text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none'

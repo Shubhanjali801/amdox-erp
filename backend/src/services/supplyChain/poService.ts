@@ -5,6 +5,7 @@
  */
 import prisma from '../../config/database';
 import { logger } from '../../utils/logger';
+import { notificationService } from '../notification/notificationService';
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 const num = (v: any) => Number(v);
@@ -100,6 +101,22 @@ export const poService = {
     }
 
     const result = await prisma.$transaction(async (tx) => {
+      // Re-validate INSIDE the transaction. The checks above read the PO before
+      // the transaction opened, so two concurrent receives could both pass them
+      // and each add stock. Re-reading here catches the second one.
+      const fresh = await tx.purchaseOrder.findUnique({ where: { id }, include: { lineItems: true } });
+      if (!fresh) throw new Error('PO_NOT_FOUND');
+      if (fresh.status === 'RECEIVED')  throw new Error('PO_ALREADY_RECEIVED');
+      if (fresh.status === 'CANCELLED') throw new Error('PO_CANCELLED');
+      const freshLineMap = new Map(fresh.lineItems.map((l) => [l.id, l]));
+      for (const r of input.lines) {
+        const line = freshLineMap.get(r.lineItemId);
+        if (!line) throw new Error('LINE_NOT_FOUND');
+        if (num(r.receivedQty) > num(line.quantity) - num(line.receivedQty) + 0.001) {
+          throw new Error('OVER_RECEIPT');
+        }
+      }
+
       const grn = await tx.goodsReceipt.create({
         data: {
           purchaseOrderId: id, receivedBy: userId,
@@ -140,6 +157,16 @@ export const poService = {
     });
 
     logger.info(`PO ${po.poNumber} received → ${result.status}`);
+
+    // Tell the team — goods arriving changes stock, so it's worth surfacing.
+    await notificationService.notifyTenant(tenantId, {
+      title: `Goods received — PO ${po.poNumber}`,
+      message: `Purchase order ${po.poNumber} is now ${result.status}. Inventory stock levels have been updated.`,
+      type: result.status === 'RECEIVED' ? 'SUCCESS' : 'INFO',
+      event: 'supply_chain.po.received',
+      resourceId: id,
+    });
+
     return result;
   },
 };

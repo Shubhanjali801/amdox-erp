@@ -4,6 +4,7 @@
  */
 import prisma from '../../config/database';
 import { logger } from '../../utils/logger';
+import { notificationService } from '../notification/notificationService';
 
 const dayStart = (d: string) => { const x = new Date(d); x.setUTCHours(0, 0, 0, 0); return x; };
 const daysBetween = (a: Date, b: Date) =>
@@ -84,6 +85,16 @@ export const leaveService = {
       },
     });
     logger.info(`Leave requested: emp ${data.employeeId}, ${totalDays} days`);
+
+    // Surface it so an approver sees the pending request without polling the page.
+    await notificationService.notifyTenant(tenantId, {
+      title: 'Leave request pending approval',
+      message: `Employee ${emp.employeeCode} requested ${totalDays} day(s) of ${type.name} from ${data.startDate} to ${data.endDate}.`,
+      type: 'WARNING',
+      event: 'hr.leave.requested',
+      resourceId: req.id,
+    });
+
     return req;
   },
 

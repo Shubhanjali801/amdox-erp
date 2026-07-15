@@ -39,6 +39,41 @@ export const notificationService = {
     return n;
   },
 
+  /**
+   * Fan-out helper: notify every active user in a tenant. Business modules call
+   * this on meaningful events (PO received, leave requested, payment recorded)
+   * so the team sees it in the bell. Never throws — a notification failure must
+   * not roll back the business action that triggered it.
+   */
+  async notifyTenant(
+    tenantId: string,
+    n: { title: string; message: string; type?: NotifyInput['type']; event?: string; resourceId?: string }
+  ) {
+    try {
+      const users = await prisma.user.findMany({
+        where: { tenantId, isActive: true, deletedAt: null },
+        select: { id: true },
+      });
+      if (!users.length) return;
+      await prisma.notification.createMany({
+        data: users.map((u) => ({
+          tenantId,
+          userId: u.id,
+          title: n.title,
+          message: n.message,
+          type: (n.type as any) || 'INFO',
+          channel: 'IN_APP' as any,
+          event: n.event || 'system.generic',
+          resourceId: n.resourceId,
+          deliveredAt: new Date(),
+        })),
+      });
+      logger.info(`Notification fan-out (${users.length} users): ${n.title}`);
+    } catch (err) {
+      logger.error(`Notification fan-out failed: ${(err as Error).message}`);
+    }
+  },
+
   async list(p: NotifListParams) {
     const page = Math.max(1, p.page || 1);
     const limit = Math.min(100, p.limit || 20);

@@ -5,6 +5,7 @@
  */
 import prisma from '../../config/database';
 import { logger } from '../../utils/logger';
+import { notificationService } from '../notification/notificationService';
 
 export interface CreatePaymentInput {
   tenantId:    string;
@@ -81,6 +82,16 @@ export const paymentService = {
 
     // Create payment + update invoice status in one transaction
     const result = await prisma.$transaction(async (tx) => {
+      // Re-check overpayment INSIDE the transaction. The aggregate above ran
+      // before the transaction opened, so two concurrent payments could each
+      // see the old total, both pass, and overpay the invoice.
+      const freshAgg = await tx.payment.aggregate({
+        where: { invoiceId: invoice.id, status: 'COMPLETED' },
+        _sum: { amount: true },
+      });
+      const freshPaid = round2(Number(freshAgg._sum.amount || 0) + input.amount);
+      if (freshPaid > invoiceTotal + 0.01) throw new Error('OVERPAYMENT');
+
       const payment = await tx.payment.create({
         data: {
           tenantId:    input.tenantId,
@@ -94,8 +105,8 @@ export const paymentService = {
         },
       });
 
-      // Determine new invoice status
-      const fullyPaid = newTotalPaid >= invoiceTotal - 0.01;
+      // Determine new invoice status from the FRESH total, not the pre-transaction one
+      const fullyPaid = freshPaid >= invoiceTotal - 0.01;
       await tx.invoice.update({
         where: { id: invoice.id },
         data: {
@@ -104,12 +115,21 @@ export const paymentService = {
         },
       });
 
-      return { payment, newStatus: fullyPaid ? 'PAID' : 'PARTIALLY_PAID', totalPaid: newTotalPaid, invoiceTotal };
+      return { payment, newStatus: fullyPaid ? 'PAID' : 'PARTIALLY_PAID', totalPaid: freshPaid, invoiceTotal };
     });
 
     logger.info(
       `Payment ${input.amount} recorded for invoice ${invoice.invoiceNumber} → ${result.newStatus}`
     );
+
+    await notificationService.notifyTenant(input.tenantId, {
+      title: `Payment recorded — ${invoice.invoiceNumber}`,
+      message: `${invoice.currency} ${input.amount} received against invoice ${invoice.invoiceNumber}. Status is now ${result.newStatus}.`,
+      type: result.newStatus === 'PAID' ? 'SUCCESS' : 'INFO',
+      event: 'finance.payment.recorded',
+      resourceId: result.payment.id,
+    });
+
     return result;
   },
 

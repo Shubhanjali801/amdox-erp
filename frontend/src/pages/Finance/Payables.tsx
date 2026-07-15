@@ -21,6 +21,8 @@ export default function Payables() {
   const [open, setOpen] = useState(false)
   const [pay, setPay] = useState<any | null>(null)
   const [saving, setSaving] = useState(false)
+  // Invoice with a row action in flight — blocks double-click double-submits.
+  const [busy, setBusy] = useState<string | null>(null)
   const [form, setForm] = useState<any>({ invoiceNumber: '', vendorId: '', issueDate: '', dueDate: '', desc: '', quantity: 1, unitPrice: 0 })
   const [payForm, setPayForm] = useState({ amount: 0, method: 'BANK_TRANSFER' })
 
@@ -31,7 +33,7 @@ export default function Payables() {
     { key: 'status', header: 'Status', render: (i) => <span className={STATUS[i.status] || ''}>{i.status}</span> },
     { key: 'actions', header: '', render: (i) => (
       <div className="flex gap-3">
-        {(i.status === 'DRAFT' || i.status === 'PENDING') && <button onClick={() => approve(i.id)} className="text-xs text-blue-400 hover:underline">approve</button>}
+        {(i.status === 'DRAFT' || i.status === 'PENDING') && <button disabled={busy === i.id} onClick={() => approve(i.id)} className="text-xs text-blue-400 hover:underline disabled:opacity-40 disabled:no-underline">{busy === i.id ? 'approving…' : 'approve'}</button>}
         {(i.status === 'APPROVED' || i.status === 'PARTIALLY_PAID') && <button onClick={() => { setPay(i); setPayForm({ amount: num(i.totalAmount), method: 'BANK_TRANSFER' }) }} className="text-xs text-green-400 hover:underline">pay</button>}
       </div>
     )},
@@ -48,8 +50,15 @@ export default function Payables() {
       toast.success('Invoice created'); setOpen(false); apQ.refetch()
     } catch (e: any) { toast.error(e?.response?.data?.message || 'Failed') } finally { setSaving(false) }
   }
-  const approve = async (id: string) => { try { await financeService.approveAP(id); toast.success('Approved'); apQ.refetch() } catch (e: any) { toast.error(e?.response?.data?.message || 'Failed') } }
+  const approve = async (id: string) => {
+    if (busy) return
+    setBusy(id)
+    try { await financeService.approveAP(id); toast.success('Approved'); apQ.refetch() }
+    catch (e: any) { toast.error(e?.response?.data?.message || 'Failed') }
+    finally { setBusy(null) }
+  }
   const doPay = async () => {
+    if (saving) return          // guard: `disabled` can lag behind a fast double-click
     setSaving(true)
     try {
       await financeService.createPayment({ invoiceId: pay.id, amount: num(payForm.amount), method: payForm.method })
