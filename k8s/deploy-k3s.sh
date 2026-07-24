@@ -28,16 +28,26 @@ set -a; source "$HERE/deploy.env"; set +a
 
 KUBECTL="k3s kubectl"
 
+# ── Image tag = git commit SHA ───────────────────────────────────────────────
+# Immutable, per-commit tags (never ":latest"). Two reasons:
+#   1. A bad build can't overwrite a good image — the previous one stays
+#      addressable, so `rollback.sh` can point back at it.
+#   2. Changing the image field bumps the Deployment's pod spec, so Kubernetes
+#      records a real revision and `kubectl rollout undo` actually works.
+#      With a fixed ":latest" the spec never changes and rollback is a no-op.
+TAG="$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo "manual-$(date +%Y%m%d-%H%M%S)")"
+echo "▶ Building image tag: $TAG"
+
 echo "▶ [1/7] Building images (this takes a few minutes; the ML image is large)…"
-docker build -t amdox-backend:latest  "$ROOT/backend"
-docker build -t amdox-ml:latest       "$ROOT/ml-service"
+docker build -t "amdox-backend:$TAG"  "$ROOT/backend"
+docker build -t "amdox-ml:$TAG"       "$ROOT/ml-service"
 # Frontend calls a RELATIVE API path; Traefik ingress routes /api → backend.
 docker build --build-arg VITE_API_BASE_URL=/api/v1 \
-             -t amdox-frontend:latest "$ROOT/frontend"
+             -t "amdox-frontend:$TAG" "$ROOT/frontend"
 
 echo "▶ [2/7] Importing images into k3s containerd…"
 for img in amdox-backend amdox-frontend amdox-ml; do
-  docker save "$img:latest" | k3s ctr images import -
+  docker save "$img:$TAG" | k3s ctr images import -
 done
 
 echo "▶ [3/7] Namespace…"
@@ -64,14 +74,23 @@ $KUBECTL -n amdox create secret generic amdox-secrets \
   --from-literal=GMAIL_APP_PASSWORD="${GMAIL_APP_PASSWORD:-}" \
   --dry-run=client -o yaml | $KUBECTL apply -f -
 
-echo "▶ [5/7] Data + app workloads…"
+echo "▶ [5/7] Data + app workloads (image tag: $TAG)…"
 $KUBECTL apply -f "$HERE/02-postgres.yaml"
 $KUBECTL apply -f "$HERE/03-redis.yaml"
-$KUBECTL apply -f "$HERE/04-backend.yaml"
-$KUBECTL apply -f "$HERE/05-frontend.yaml"
-$KUBECTL apply -f "$HERE/06-ml-service.yaml"
+# Swap the manifests' placeholder ":latest" for this build's immutable SHA tag.
+# Because the image field changes each deploy, Kubernetes records a new
+# revision — which is exactly what makes `kubectl rollout undo` work.
+for f in 04-backend.yaml 05-frontend.yaml 06-ml-service.yaml; do
+  sed -e "s|amdox-backend:latest|amdox-backend:$TAG|g" \
+      -e "s|amdox-frontend:latest|amdox-frontend:$TAG|g" \
+      -e "s|amdox-ml:latest|amdox-ml:$TAG|g" \
+      "$HERE/$f" | $KUBECTL apply -f -
+done
 # Optional extras — ignore if the files are absent
 [[ -f "$HERE/08-hpa.yaml" ]]        && $KUBECTL apply -f "$HERE/08-hpa.yaml"        || true
+
+# Record what was deployed, so rollback.sh can show a history of good builds.
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ)  $TAG" >> "$HERE/.deploy-history"
 
 echo "▶ [6/7] cert-manager (for Let's Encrypt TLS)…"
 if ! $KUBECTL get ns cert-manager >/dev/null 2>&1; then
@@ -86,8 +105,20 @@ sed -e "s|<DOMAIN>|$DOMAIN|g" -e "s|<EMAIL>|$LETSENCRYPT_EMAIL|g" \
     "$HERE/07-ingress.yaml" | $KUBECTL apply -f -
 
 echo
-echo "✅ Deploy applied. Watch it come up with:"
-echo "     k3s kubectl -n amdox get pods -w"
-echo "   Certificate status (should become Ready in 1–3 min):"
-echo "     k3s kubectl -n amdox get certificate"
-echo "   Then open:  https://$DOMAIN"
+echo "▶ Waiting for the backend rollout to succeed…"
+if $KUBECTL -n amdox rollout status deploy/backend --timeout=180s; then
+  echo "✅ Backend healthy on tag $TAG"
+else
+  echo
+  echo "❌ Backend rollout FAILED on tag $TAG — the previous version keeps serving."
+  echo "   Roll back:  sudo ./rollback.sh"
+  echo "   See why:    k3s kubectl -n amdox logs deploy/backend --previous --tail=40"
+  exit 1
+fi
+
+echo
+echo "✅ Deploy applied  (image tag: $TAG)"
+echo "   Pods:        k3s kubectl -n amdox get pods -w"
+echo "   Certificate: k3s kubectl -n amdox get certificate     (Ready in 1–3 min)"
+echo "   Rollback:    sudo ./rollback.sh"
+echo "   Open:        https://$DOMAIN"
