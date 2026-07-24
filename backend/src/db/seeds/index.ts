@@ -12,6 +12,7 @@ import { seedHR }                   from './05_hr'
 import { seedSupplyChain }          from './06_supply_chain'
 import { seedProjects }             from './07_projects'
 import { seedDashboard }            from './08_dashboard'
+import { seedTransactions }         from './09_transactions'
 
 const prisma = new PrismaClient()
 
@@ -45,6 +46,9 @@ async function main() {
   // Step 8 — Dashboard & Widgets
   const adminUser = users[0]
   await seedDashboard(prisma, tenantId, adminUser.id)
+
+  // Step 9 — Transactions (invoices, payments, POs, attendance, leave, payroll)
+  await seedTransactions(prisma, tenantId)
 
   console.log('\n' + '━'.repeat(50))
   console.log('✅ All seed data created successfully!\n')
