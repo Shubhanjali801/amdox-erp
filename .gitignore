@@ -70,8 +70,10 @@ backend/src/db/seed-forecast-all.ts
 backend/src/db/seed-forecast-amdox.ts
 Amdox ERP — Backend.postman_Response&Request_collection.json
 postman_collection.json
-Response&Request_collection.jsonk8s/deploy.env
-amdox-erp\k8s\deploy.env
-k8s\deploy.env
+Response&Request_collection.json
+k8s/deploy.env
 deploy.env
 startawsliveurl.md
+
+# Server-local deploy log written by k8s/deploy-k3s.sh
+k8s/.deploy-history
