@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import axios from 'axios';
 import prisma from '../../config/database';
 import { logger } from '../../utils/logger';
+import { queueWebhook } from '../../queues';
 
 function sign(secret: string, body: string) {
   return crypto.createHmac('sha256', secret).update(body).digest('hex');
@@ -88,11 +89,12 @@ export const webhookService = {
     return this.deliver(wh, 'webhook.test', { hello: 'from Amdox ERP', webhookId: id });
   },
 
-  // Fire all active webhooks subscribed to an event
+  // Fire all active webhooks subscribed to an event.
+  // Each delivery is ENQUEUED — the webhook worker POSTs it with retries, so a
+  // slow or flaky endpoint never blocks the action that emitted the event.
   async dispatch(tenantId: string, event: string, payload: any) {
     const hooks = await prisma.webhook.findMany({ where: { tenantId, isActive: true, events: { has: event } } });
-    const results = [];
-    for (const h of hooks) results.push(await this.deliver(h, event, payload));
-    return { dispatched: results.length, results };
+    for (const h of hooks) await queueWebhook(h.id, event, payload);
+    return { dispatched: hooks.length };
   },
 };

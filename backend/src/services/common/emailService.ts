@@ -6,6 +6,7 @@
  */
 import nodemailer from 'nodemailer';
 import { logger } from '../../utils/logger';
+import { queueEmail } from '../../queues';
 
 const GMAIL_USER = process.env.GMAIL_USER || '';
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || '';
@@ -47,6 +48,8 @@ export const emailService = {
         <p style="color:#6b7280;font-size:13px">If you didn't request this, you can safely ignore this email.</p>
         <p style="color:#9ca3af;font-size:12px">Or paste this link: <br>${resetLink}</p>
       </div>`;
-    await this.send(to, 'Reset your Amdox ERP password', html);
+    // Enqueue instead of sending inline — the email worker delivers it with
+    // automatic retries, and the request returns immediately.
+    await queueEmail(to, 'Reset your Amdox ERP password', html);
   },
 };
