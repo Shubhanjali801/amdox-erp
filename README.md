@@ -8,8 +8,7 @@
 
 ## 🌐 Live Demo
 
-**URL:** https://3.7.68.28.nip.io
-
+**URL:** https://13.127.204.51.nip.io/
 Deployed on **AWS EC2** running **Kubernetes (k3s)** with **Let's Encrypt HTTPS**.
 
 ### Demo Accounts (role-based access)
