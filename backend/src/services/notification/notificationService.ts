@@ -72,6 +72,20 @@ export const notificationService = {
     } catch (err) {
       logger.error(`Notification fan-out failed: ${(err as Error).message}`);
     }
+
+    // Also fan out to any external webhooks subscribed to this event. Delivery
+    // is queued (BullMQ) with automatic retries, so a slow/flaky endpoint never
+    // blocks or fails the business action. Best-effort — never throws.
+    if (n.event) {
+      try {
+        const { webhookService } = await import('./webhookService');
+        await webhookService.dispatch(tenantId, n.event, {
+          title: n.title, message: n.message, resourceId: n.resourceId,
+        });
+      } catch (err) {
+        logger.error(`Webhook dispatch failed: ${(err as Error).message}`);
+      }
+    }
   },
 
   async list(p: NotifListParams) {
