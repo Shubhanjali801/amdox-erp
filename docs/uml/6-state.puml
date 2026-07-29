@@ -1,29 +1,39 @@
 @startuml Amdox-ERP-State
 title Amdox ERP — State Diagram (Invoice Lifecycle)
 
+' What this shows: the states an invoice moves through (the InvoiceStatus enum)
+' and the action that causes each transition. Payments auto-advance the status:
+' the payment service sets PARTIALLY_PAID or PAID based on total paid vs total.
+
 [*] --> DRAFT : create invoice
 
-DRAFT --> PENDING : submit
+DRAFT --> APPROVED : approve
 DRAFT --> CANCELLED : discard
 
-PENDING --> APPROVED : manager approves
-PENDING --> DRAFT : request changes
-PENDING --> CANCELLED : reject
-
-APPROVED --> PARTIALLY_PAID : partial payment
-APPROVED --> PAID : full payment
-APPROVED --> OVERDUE : due date passed
+APPROVED --> PARTIALLY_PAID : record payment\n(part of total)
+APPROVED --> PAID : record payment\n(full total)
+APPROVED --> OVERDUE : due date passes\n(unpaid)
+APPROVED --> CANCELLED : cancel
 
 PARTIALLY_PAID --> PAID : remaining paid
-PARTIALLY_PAID --> OVERDUE : due date passed
+PARTIALLY_PAID --> OVERDUE : due date passes
 
-OVERDUE --> PAID : payment received
+OVERDUE --> PARTIALLY_PAID : partial payment
+OVERDUE --> PAID : full payment
 
 PAID --> [*]
 CANCELLED --> [*]
 
 note right of APPROVED
-  3-way match:
-  PO + GRN + Invoice
+  Only APPROVED (or PARTIALLY_PAID)
+  invoices can take a payment. The
+  overpayment check runs inside the
+  DB transaction to stay correct
+  under concurrent requests.
+end note
+
+note bottom
+  PENDING also exists in the enum but the current
+  UI approves DRAFT -> APPROVED directly.
 end note
 @enduml

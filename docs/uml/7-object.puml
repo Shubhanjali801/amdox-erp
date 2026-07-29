@@ -1,44 +1,55 @@
 @startuml Amdox-ERP-Object
 title Amdox ERP — Object Diagram (Runtime Snapshot)
 
-object "amdox : Tenant" as t {
-  id = "tnt-001"
-  name = "Amdox Technologies"
-  slug = "amdox-technologies"
-  plan = "STARTER"
-}
+' What this shows: a single concrete example of the data at runtime — the
+' seeded demo tenant, its super-admin user, that user's role, one permission
+' the role grants, and one invoice the tenant owns. It's the Class Diagram
+' made real with actual seeded values.
 
-object "shubhanjali : User" as u1 {
-  email = "admin@amdox.com"
-  firstName = "Shubhanjali"
+object "amdox : Tenant" as t {
+  name = "Amdox Technologies"
+  slug = "amdox-demo"
+  plan = "ENTERPRISE"
   isActive = true
 }
 
-object "adminRole : Role" as r {
-  name = "tenant_admin"
+object "superAdmin : User" as u1 {
+  email = "admin@amdox.com"
+  isActive = true
+  mfaEnabled = false
+}
+
+object "role : Role" as r {
+  name = "super_admin"
   isSystem = true
 }
 
-object "writeUsers : Permission" as p {
-  resource = "users"
-  action = "write"
+object "perm : Permission" as p {
+  resource = "user"
+  action = "create"
 }
 
-object "cash : ChartOfAccount" as a {
-  code = "1001"
-  name = "Cash in Hand"
-  type = "ASSET"
+object "invAR : Invoice" as inv {
+  invoiceNumber = "INV-AR-2026-001"
+  type = "AR"
+  totalAmount = 1003000
+  status = "PAID"
 }
 
-object "inv001 : Invoice" as inv {
-  invoiceNumber = "INV-2026-001"
-  totalAmount = 50000
-  status = "APPROVED"
+object "payment : Payment" as pay {
+  amount = 1003000
+  method = "CHEQUE"
+  status = "COMPLETED"
 }
 
 t --> u1 : has
-u1 --> r : assigned
-r --> p : grants
-t --> a : owns
+u1 --> r : assigned (UserRole)
+r --> p : grants (RolePermission)
 t --> inv : owns
+inv --> pay : settled by
+
+note bottom of t
+  This is the tenant you log into as
+  admin@amdox.com / Admin@1234.
+end note
 @enduml

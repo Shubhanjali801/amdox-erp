@@ -1,8 +1,13 @@
 @startuml Amdox-ERP-Activity
 title Amdox ERP — Activity Diagram (Create User with RBAC)
 
+' What this shows: the exact checks a request passes on its way in, and the
+' HTTP status returned if any check fails. This same guard chain protects
+' every write endpoint in the app.
+
 start
-:User sends POST /users;
+:User sends POST /api/v1/users;
+
 :authenticate (verify JWT);
 if (Token valid?) then (no)
   :Return 401 Unauthorized;
@@ -10,31 +15,37 @@ if (Token valid?) then (no)
 else (yes)
 endif
 
-if (Has users:write permission?) then (no)
+if (Has 'user:create' permission?) then (no)
   :Return 403 Forbidden;
   stop
 else (yes)
 endif
 
-:Validate request body (Joi);
+:Validate request body (Zod schema);
 if (Body valid?) then (no)
-  :Return 422 Validation error;
+  :Return 400 Bad Request;
   stop
 else (yes)
 endif
 
-:Check email unique in tenant;
-if (Email exists?) then (yes)
+:Check email unique within tenant;
+if (Email exists in tenant?) then (yes)
   :Return 409 Conflict;
   stop
 else (no)
 endif
 
-partition "DB Transaction" {
+partition "DB Transaction (tenant-scoped)" {
   :Hash password (bcrypt);
-  :INSERT user;
+  :INSERT user (with tenantId);
   :Assign roles (UserRole);
 }
 :Return 201 Created;
 stop
+
+note right
+  Order matters:
+  auth -> permission -> validate -> business rules.
+  Cheapest / most security-critical checks run first.
+end note
 @enduml

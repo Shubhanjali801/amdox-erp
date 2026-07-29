@@ -124,8 +124,8 @@ VW --> UC_REP
 UC_PAY  ..> UC_APPR : <<include>> invoice must be approved
 UC_GRN  ..> UC_PO   : <<include>> against a PO
 UC_FC   ..> ML      : <<include>> LSTM/Prophet predict
-UC_PWD  ..> MAIL    : <<include>> send reset link
-UC_WHK  ..> WH      : <<include>> signed delivery
+UC_PWD  ..> MAIL    : <<include>> reset link (queued, BullMQ)
+UC_WHK  ..> WH      : <<include>> signed delivery (queued, retry x3)
 UC_NOTIF ..> UC_WHK : <<extend>> event fan-out
 
 note bottom of UC_AUDIT
@@ -133,6 +133,12 @@ note bottom of UC_AUDIT
   recorded in a tamper-evident (hash-chained)
   audit log. Every request is JWT-authenticated,
   RBAC-checked, and tenant-isolated.
+end note
+
+note top of MAIL
+  Email + webhook delivery run through
+  BullMQ queues (Redis) with automatic
+  retries — they never block the request.
 end note
 
 @enduml

@@ -1,48 +1,67 @@
 @startuml Amdox-ERP-Component
-title Amdox ERP — Component Diagram
+title Amdox ERP — Component Diagram (as-built)
 skinparam componentStyle rectangle
+skinparam shadowing false
 
-package "Frontend" {
+' What this shows: the running pieces of the system and how a request flows
+' through them. Read top-to-bottom: browser -> backend -> data stores.
+
+actor "User\n(browser)" as USER
+
+package "Frontend  (nginx pod)" {
   [React 18 + Vite SPA] as FE
-  [Zustand Store] as ZS
-  [TanStack Query] as TQ
+  [Zustand\n(client state)] as ZS
+  [TanStack Query\n(server cache)] as TQ
 }
 
-package "Backend (NestJS :5000)" {
-  [API Gateway / Routes] as RT
-  [Auth + RBAC Middleware] as AUTH
+package "Backend  (Express, :5000)" {
+  [Routes] as RT
+  [authenticate\n(verify JWT)] as AUTH
+  [requirePermission\n(RBAC guard)] as RBAC
+  [validate\n(Zod schema)] as VAL
   [Controllers] as CTRL
-  [Services (Business Logic)] as SVC
+  [Services\n(business logic,\ntenant-scoped)] as SVC
   [Prisma ORM] as ORM
-  [BullMQ Producers] as BQ
+  [Queue producers\n(BullMQ)] as PROD
+  [Workers\n(email / webhook)] as WORK
 }
 
-package "ML Microservice (:8000)" {
-  [FastAPI] as FA
-  [LSTM Model] as LSTM
-  [Prophet Model] as PROPHET
+package "ML Microservice  (FastAPI, :8000)" {
+  [LSTM  (PyTorch)] as LSTM
+  [Prophet] as PROPHET
 }
 
-database "PostgreSQL 17" as PG
-queue "Redis 7" as RD
-[Keycloak 25 (SSO)] as KC
-[Elasticsearch] as ES
-cloud "AWS S3 / SES" as AWS
+database "PostgreSQL 17\n(43 tables)" as PG
+queue "Redis 7\n(sessions + BullMQ)" as RD
 
-FE --> RT : HTTPS / REST
+USER --> FE : HTTPS
 FE ..> ZS
 FE ..> TQ
+FE --> RT : REST /api/v1
+
 RT --> AUTH
-AUTH --> CTRL
+AUTH --> RBAC
+RBAC --> VAL
+VAL --> CTRL
 CTRL --> SVC
 SVC --> ORM
 ORM --> PG
-SVC --> BQ
-BQ --> RD
-SVC --> FA : HTTP (forecast)
-FA --> LSTM
-FA --> PROPHET
-AUTH --> KC : OIDC
-SVC --> ES : full-text search
-SVC --> AWS : files / email
+SVC --> PROD : enqueue email / webhook
+PROD --> RD
+WORK --> RD : pull jobs (retry x3)
+WORK --> PG : log webhook delivery
+SVC --> LSTM : HTTP (forecast, x-api-key)
+SVC --> PROPHET
+
+note bottom of WORK
+  Workers run inside the backend.
+  A failed job retries 3x with
+  exponential backoff.
+end note
+
+note right of AUTH
+  Every protected request passes
+  this 3-step chain before reaching
+  a controller.
+end note
 @enduml

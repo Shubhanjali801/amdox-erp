@@ -1,45 +1,49 @@
 @startuml Amdox-ERP-Deployment
-title Amdox ERP — Deployment Diagram
+title Amdox ERP — Deployment Diagram (as-built on AWS)
+skinparam shadowing false
 
-node "Client Device" {
-  artifact "Browser (React SPA)" as browser
+' What this shows: where each piece physically runs in production.
+' Everything lives inside ONE AWS EC2 instance running k3s (lightweight
+' Kubernetes). The browser reaches it over HTTPS via the Traefik ingress.
+
+node "User Device" {
+  artifact "Browser\n(React SPA)" as browser
 }
 
-cloud "CDN / Load Balancer" as lb
+cloud "Internet" as net
 
-node "Docker Host / Kubernetes Cluster" {
+node "AWS EC2  (Ubuntu 22.04)\nElastic IP 13.127.204.51" as ec2 {
 
-  node "frontend-container" {
-    artifact "Nginx + Vite build" as nginx
+  node "k3s  (single-node Kubernetes)" {
+
+    component "Traefik Ingress\n+ cert-manager (Let's Encrypt TLS)" as ingress
+
+    node "frontend  x2\n(nginx + Vite build)" as fe
+    node "backend  x2\n(Node 22 + Express + BullMQ workers)" as be
+    node "ml-service  x1\n(FastAPI + LSTM + Prophet)" as ml
+    database "postgres-0\n(PostgreSQL 17, PVC)" as pg
+    queue "redis\n(Redis 7)" as redis
+
+    component "HPA\n(autoscale >70% CPU)" as hpa
+    component "pg_dump CronJob\n(backup)" as backup
   }
-
-  node "backend-container" {
-    artifact "Node.js 22 + NestJS" as api
-  }
-
-  node "ml-container" {
-    artifact "Python FastAPI\nLSTM + Prophet" as ml
-  }
-
-  database "postgres-container\nPostgreSQL 17" as pg
-  queue "redis-container\nRedis 7" as redis
-  node "keycloak-container\nKeycloak 25" as kc
-  node "elasticsearch-container" as es
 }
 
-cloud "AWS" {
-  artifact "S3 (files)" as s3
-  artifact "SES (email)" as ses
-}
+browser --> net : HTTPS
+net --> ingress : :443
+ingress --> fe : /
+ingress --> be : /api
+be --> pg : Prisma (5432)
+be --> redis : sessions + BullMQ (6379)
+be --> ml : HTTP (8000)
+hpa ..> be : scales
+backup ..> pg : every 15 min
 
-browser --> lb : HTTPS
-lb --> nginx
-nginx --> api : /api/v1
-api --> pg : Prisma (5432)
-api --> redis : BullMQ (6379)
-api --> ml : HTTP (8000)
-api --> kc : OIDC (8080)
-api --> es : search (9200)
-api --> s3
-api --> ses
+note right of ec2
+  Single-box deploy via k8s/deploy-k3s.sh.
+  Images built on the node and imported
+  into k3s (no external registry).
+  Not used (spec-optional): EKS, RDS,
+  ElastiCache, S3, SES, Keycloak.
+end note
 @enduml

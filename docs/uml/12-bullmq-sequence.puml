@@ -1,0 +1,45 @@
+@startuml Amdox-ERP-BullMQ
+title Amdox ERP — Async Job Queue (BullMQ) Sequence
+
+' What this shows: how a slow / unreliable task (like calling an external
+' webhook) is handled WITHOUT blocking the user's request. The API just drops
+' a job on the queue and responds; a worker does the real work later and
+' retries automatically if it fails.
+
+actor User
+participant "Backend API\n(Express)" as API
+participant "Service" as SVC
+queue "Redis\n(BullMQ queue)" as Q
+participant "Worker\n(runs in backend)" as W
+participant "External\nWebhook URL" as EXT
+database "PostgreSQL" as DB
+
+User -> API : record payment
+API -> SVC : paymentService.create()
+SVC -> DB : INSERT payment (in transaction)
+SVC -> Q : enqueue 'webhook' job\n(non-blocking, ~5ms)
+API --> User : 200 OK (instant)
+
+== later, in the background ==
+
+W -> Q : pull next job
+W -> EXT : POST signed payload
+EXT --> W : HTTP 500 (fails)
+W -> DB : log delivery attempt
+note over W, Q
+  attempt 1 failed -> BullMQ re-queues
+  with exponential backoff (3s, 6s...)
+end note
+
+W -> Q : pull job again (attempt 2)
+W -> EXT : POST payload
+EXT --> W : HTTP 500 (fails)
+W -> Q : pull job again (attempt 3)
+W -> EXT : POST payload
+EXT --> W : HTTP 500 (fails)
+note over W
+  after 3 attempts -> job moves to
+  "failed". Visible in Bull Board
+  at /api/admin/queues.
+end note
+@enduml

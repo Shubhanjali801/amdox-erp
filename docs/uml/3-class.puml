@@ -1,6 +1,12 @@
 @startuml Amdox-ERP-Class
 title Amdox ERP — Class Diagram (Core Domain)
 skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+' How to read this: Tenant is the top of everything — every other record
+' belongs to exactly one Tenant (that's multi-tenancy). A User gets Roles,
+' each Role grants Permissions (resource:action). The rest are the business
+' entities. "*--" = "owns / composed of"; "many--many" uses a join table.
 
 class Tenant {
   +id: UUID
@@ -8,7 +14,6 @@ class Tenant {
   +slug: string
   +plan: PlanType
   +isActive: boolean
-  +settings: Json
 }
 
 class User {
@@ -16,9 +21,6 @@ class User {
   +tenantId: UUID
   +email: string
   +passwordHash: string
-  +firstName: string
-  +lastName: string
-  +isActive: boolean
   +mfaEnabled: boolean
   --
   +login()
@@ -27,36 +29,46 @@ class User {
 
 class Role {
   +id: UUID
-  +name: string
+  +name: string  '' e.g. finance_manager
   +isSystem: boolean
 }
 
 class Permission {
   +id: UUID
-  +resource: string
-  +action: string
-}
-
-class ChartOfAccount {
-  +id: UUID
-  +code: string
-  +name: string
-  +type: AccountType
-  +parentId: UUID
-}
-
-class Invoice {
-  +id: UUID
-  +invoiceNumber: string
-  +type: InvoiceType
-  +totalAmount: Decimal
-  +status: InvoiceStatus
+  +resource: string  '' finance, hr, supply_chain...
+  +action: string    '' read, create, approve...
 }
 
 class Employee {
   +id: UUID
   +employeeCode: string
   +baseSalary: Decimal
+}
+
+class Invoice {
+  +id: UUID
+  +invoiceNumber: string
+  +type: InvoiceType      '' AP or AR
+  +totalAmount: Decimal
+  +status: InvoiceStatus
+}
+
+class Payment {
+  +id: UUID
+  +amount: Decimal
+  +method: PaymentMethod
+}
+
+class Vendor {
+  +id: UUID
+  +code: string
+  +name: string
+}
+
+class PurchaseOrder {
+  +id: UUID
+  +poNumber: string
+  +status: POStatus
 }
 
 class InventoryItem {
@@ -66,22 +78,41 @@ class InventoryItem {
   +reorderPoint: Decimal
 }
 
+class StockMovement {
+  +id: UUID
+  +type: MovementType   '' IN / OUT
+  +quantity: Decimal
+}
+
 class Forecast {
   +id: UUID
-  +modelType: string
+  +modelType: string    '' LSTM / PROPHET
   +predictedQty: Decimal
   +mape: Decimal
 }
 
+' ── Identity & access ──
 Tenant "1" *-- "many" User
 Tenant "1" *-- "many" Role
 User "many" -- "many" Role : UserRole
 Role "many" -- "many" Permission : RolePermission
-Tenant "1" *-- "many" ChartOfAccount
-Tenant "1" *-- "many" Invoice
-Tenant "1" *-- "many" Employee
 User "1" -- "0..1" Employee
+
+' ── Finance ──
+Tenant "1" *-- "many" Invoice
+Invoice "1" *-- "many" Payment
+
+' ── Supply chain ──
+Tenant "1" *-- "many" Vendor
 Tenant "1" *-- "many" InventoryItem
+Vendor "1" -- "many" PurchaseOrder
+PurchaseOrder "many" -- "many" InventoryItem : POLineItem
+InventoryItem "1" *-- "many" StockMovement
 InventoryItem "1" *-- "many" Forecast
-ChartOfAccount "1" o-- "many" ChartOfAccount : parent
+
+note top of Tenant
+  Every row in every table carries a
+  tenantId. Queries filter by it, so
+  companies never see each other's data.
+end note
 @enduml

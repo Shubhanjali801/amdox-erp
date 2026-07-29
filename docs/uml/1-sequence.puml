@@ -8,7 +8,7 @@ skinparam maxMessageSize 220
 actor User
 participant "React + Vite\n(Axios + Zustand)" as FE
 participant "Express API\n:5000\n(routes/index.ts)" as API
-participant "Middleware\nauthenticate /\nrequirePermission /\nvalidate(Joi)" as MW
+participant "Middleware\nauthenticate /\nrequirePermission /\nvalidate(Zod)" as MW
 participant "Controller\n(req → res)" as CTRL
 participant "Service\n(business logic)" as SVC
 database "PostgreSQL 17\nvia Prisma" as DB
