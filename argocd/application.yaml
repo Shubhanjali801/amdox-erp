@@ -1,0 +1,79 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# ArgoCD Application — GitOps continuous delivery for Amdox ERP.
+#
+# ArgoCD watches this repo's Helm chart (helm/amdox-erp) and continuously syncs
+# the cluster to match git. A merge to `main` → CI builds & pushes images to
+# Docker Hub (.github/workflows/build.yml) → ArgoCD Image Updater bumps the tag
+# in git → ArgoCD rolls it out. No one runs kubectl by hand.
+#
+# BEFORE APPLYING, replace the two placeholders:
+#   GITHUB_USER  — the GitHub org/user that hosts this repo
+#   DOCKER_USER  — the Docker Hub account build.yml pushes to
+#
+# Secrets are intentionally NOT managed here (secrets.managed=false): create the
+# `amdox-secrets` Secret out-of-band so real credentials never live in git.
+# See argocd/README.md.
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: amdox-erp
+  namespace: argocd
+  annotations:
+    # ── ArgoCD Image Updater: watch Docker Hub for newer builds of the backend
+    #    and frontend images and write the new tag back to git (full GitOps loop).
+    argocd-image-updater.argoproj.io/image-list: >-
+      backend=docker.io/DOCKER_USER/amdox-erp-backend,
+      frontend=docker.io/DOCKER_USER/amdox-erp-frontend
+    argocd-image-updater.argoproj.io/backend.helm.image-name: images.backend.repo
+    argocd-image-updater.argoproj.io/backend.helm.image-tag: images.backend.tag
+    argocd-image-updater.argoproj.io/backend.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/frontend.helm.image-name: images.frontend.repo
+    argocd-image-updater.argoproj.io/frontend.helm.image-tag: images.frontend.tag
+    argocd-image-updater.argoproj.io/frontend.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/write-back-method: git
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/GITHUB_USER/amdox-erp.git
+    targetRevision: main
+    path: helm/amdox-erp
+    helm:
+      valueFiles:
+        - values.yaml
+      # Overrides for the GitOps/registry path: pull images from Docker Hub
+      # instead of the on-node imported images, and let ArgoCD own the secret
+      # lifecycle out-of-band.
+      values: |
+        secrets:
+          managed: false
+        images:
+          backend:  { repo: docker.io/DOCKER_USER/amdox-erp-backend,  tag: latest, pullPolicy: IfNotPresent }
+          frontend: { repo: docker.io/DOCKER_USER/amdox-erp-frontend, tag: latest, pullPolicy: IfNotPresent }
+          ml:       { repo: docker.io/DOCKER_USER/amdox-erp-ml,       tag: latest, pullPolicy: IfNotPresent }
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: amdox
+
+  syncPolicy:
+    automated:
+      prune: true       # delete resources removed from git
+      selfHeal: true    # revert manual kubectl drift back to git state
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+
+  # The HPA owns replica counts — don't let ArgoCD fight it back to the chart default.
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas

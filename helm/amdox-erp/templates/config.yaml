@@ -16,7 +16,14 @@ data:
   CLIENT_URL: {{ printf "https://%s" .Values.domain | quote }}
   FRONTEND_URL: {{ printf "https://%s" .Values.domain | quote }}
   CORS_ORIGINS: {{ printf "https://%s" .Values.domain | quote }}
+  OTEL_TRACES_ENABLED: {{ .Values.config.OTEL_TRACES_ENABLED | default "false" | quote }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.config.OTEL_EXPORTER_OTLP_ENDPOINT | default "http://tempo:4318" | quote }}
+  OTEL_SERVICE_NAME: {{ .Values.config.OTEL_SERVICE_NAME | default "amdox-backend" | quote }}
+{{- if .Values.secrets.managed }}
 ---
+# Rendered only when secrets.managed=true. For a GitOps flow (ArgoCD), set
+# secrets.managed=false and create amdox-secrets out-of-band (sealed-secrets /
+# external-secrets / kubectl) so real credentials never live in git.
 apiVersion: v1
 kind: Secret
 metadata:
@@ -31,3 +38,4 @@ stringData:
   POSTGRES_PASSWORD: {{ .Values.secrets.DB_PASSWORD | quote }}
   GMAIL_USER: {{ .Values.secrets.GMAIL_USER | quote }}
   GMAIL_APP_PASSWORD: {{ .Values.secrets.GMAIL_APP_PASSWORD | quote }}
+{{- end }}

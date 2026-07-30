@@ -7,6 +7,40 @@ on:
     branches: [ main]
 
 jobs:
+  # ── Hard gate: fast, deterministic checks that MUST pass to merge. These have
+  #    no continue-on-error, so a broken Helm chart or Prisma schema blocks the PR.
+  #    (App-level lint/type-check/tests below stay advisory while the TS type
+  #    baseline — ~188 Express-5 @types overload errors — is burned down.)
+  gate:
+    name: Gate — Helm chart + Prisma schema
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm install --legacy-peer-deps
+
+      - name: Validate Prisma schema
+        working-directory: backend
+        run: npx prisma validate
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint Helm chart
+        run: helm lint helm/amdox-erp
+
+      - name: Render Helm chart (default + GitOps values)
+        run: |
+          helm template amdox helm/amdox-erp > /dev/null
+          helm template amdox helm/amdox-erp --set secrets.managed=false > /dev/null
+
   lint-and-test-backend:
     name: Backend — Lint & Test
     runs-on: ubuntu-latest
