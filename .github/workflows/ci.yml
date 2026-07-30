@@ -28,6 +28,10 @@ jobs:
 
       - name: Validate Prisma schema
         working-directory: backend
+        # prisma validate resolves env("DATABASE_URL") in the datasource block
+        # (it never connects); CI has no .env, so supply a dummy value.
+        env:
+          DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
         run: npx prisma validate
 
       - name: Set up Helm
