@@ -15,10 +15,18 @@ import { errorHandler } from './middleware/errorHandler.middleware'
 import { globalRateLimiter } from './middleware/rateLimiter.middleware'
 import { metricsMiddleware, metricsHandler } from './config/metrics'
 import router from './routes/index'
+import { mountGraphQL } from './graphql/server'
 import { startWorkers } from './queues/workers'
 import { createQueueDashboard, queueDashboardAuth } from './queues/board'
 
 const app = express()
+
+// Trust the single Traefik/ingress hop so `req.ip` reflects the real client
+// (from X-Forwarded-For) instead of the proxy's pod IP. Without this,
+// express-rate-limit keys every request on the proxy IP → the whole app shares
+// one rate-limit bucket. A specific hop count (1) avoids the IP-spoofing risk
+// that `trust proxy: true` would introduce.
+app.set('trust proxy', 1)
 
 // ─── Security Middleware ─────────────────────────────────────────────────────
 app.use(helmet())
@@ -61,10 +69,15 @@ const startServer = async () => {
     // never prevents the API from serving.
     try { startWorkers() } catch (e) { logger.error(`Failed to start queue workers: ${(e as Error).message}`) }
 
+    // Mount the GraphQL read/BI layer (needs an async start). Guarded so a
+    // GraphQL init failure never takes down the REST API.
+    try { await mountGraphQL(app) } catch (e) { logger.error(`Failed to mount GraphQL: ${(e as Error).message}`) }
+
     app.listen(env.PORT, () => {
       logger.info(`Server running on port ${env.PORT} in ${env.NODE_ENV} mode`)
       logger.info(`API docs: http://localhost:${env.PORT}/api-docs`)
       logger.info(`Queue dashboard: /api/admin/queues`)
+      logger.info(`GraphQL: /api/graphql`)
     })
   } catch (error) {
     logger.error('Failed to start server:', error)

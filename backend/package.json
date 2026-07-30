@@ -24,6 +24,7 @@
     "prisma:studio": "npx prisma studio"
   },
   "dependencies": {
+    "@apollo/server": "^4.13.0",
     "@aws-sdk/client-s3": "^3.1063.0",
     "@aws-sdk/client-ses": "^3.1063.0",
     "@bull-board/api": "^6.21.3",
@@ -49,6 +50,7 @@
     "exceljs": "^3.4.0",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
+    "graphql": "^16.14.2",
     "helmet": "^7.2.0",
     "ioredis": "^5.11.1",
     "joi": "^17.13.3",

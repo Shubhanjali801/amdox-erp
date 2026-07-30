@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as auth        from '../controllers/authController';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate }     from '../middleware/validation.middleware';
+import { authRateLimiter } from '../middleware/rateLimiter.middleware';
 import {
   registerSchema,
   loginSchema,
@@ -13,12 +14,14 @@ import {
 const router = Router();
 
 // ── Public routes (no JWT needed) ─────────────────────────
-router.post('/register', validate(registerSchema), auth.register);
-router.post('/login',    validate(loginSchema),    auth.login);
+// authRateLimiter (10 / 15min per IP) guards the credential-accepting routes
+// against brute-force / credential-stuffing, on top of the global limiter.
+router.post('/register', authRateLimiter, validate(registerSchema), auth.register);
+router.post('/login',    authRateLimiter, validate(loginSchema),    auth.login);
 // refresh reads token from httpOnly cookie OR body — no body validation
 router.post('/refresh',  auth.refresh);
-router.post('/forgot-password', validate(forgotPasswordSchema), auth.forgotPassword);
-router.post('/reset-password',  validate(resetPasswordSchema),  auth.resetPassword);
+router.post('/forgot-password', authRateLimiter, validate(forgotPasswordSchema), auth.forgotPassword);
+router.post('/reset-password',  authRateLimiter, validate(resetPasswordSchema),  auth.resetPassword);
 
 // ── Protected routes (JWT required) ───────────────────────
 router.post('/logout',         authenticate,                              auth.logout);
