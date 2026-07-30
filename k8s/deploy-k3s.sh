@@ -62,6 +62,9 @@ $KUBECTL -n amdox create configmap amdox-config \
   --from-literal=CLIENT_URL="https://$DOMAIN" \
   --from-literal=FRONTEND_URL="https://$DOMAIN" \
   --from-literal=CORS_ORIGINS="https://$DOMAIN" \
+  --from-literal=OTEL_TRACES_ENABLED="${OTEL_TRACES_ENABLED:-false}" \
+  --from-literal=OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4318 \
+  --from-literal=OTEL_SERVICE_NAME=amdox-backend \
   --dry-run=client -o yaml | $KUBECTL apply -f -
 
 $KUBECTL -n amdox create secret generic amdox-secrets \

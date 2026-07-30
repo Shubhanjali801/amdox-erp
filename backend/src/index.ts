@@ -1,3 +1,5 @@
+// OpenTelemetry MUST load before any instrumented module (express/http/pg/redis).
+import './telemetry'
 import express from 'express'
 import helmet from 'helmet'
 import cors from 'cors'

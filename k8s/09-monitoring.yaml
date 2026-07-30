@@ -57,6 +57,32 @@ spec:
     - port: 9090
       targetPort: 9090
 ---
+# Datasources auto-provisioned into Grafana. Prometheus always exists (this
+# file); Loki + Tempo resolve once k8s/11-observability.yaml is applied — until
+# then Grafana simply shows them as unreachable, which is harmless.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: amdox
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus:9090
+        isDefault: true
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki:3100
+      - name: Tempo
+        type: tempo
+        access: proxy
+        url: http://tempo:3200
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -81,9 +107,15 @@ spec:
                 secretKeyRef: { name: amdox-secrets, key: POSTGRES_PASSWORD }
             - name: GF_AUTH_ANONYMOUS_ENABLED
               value: "true"
+          volumeMounts:
+            - name: datasources
+              mountPath: /etc/grafana/provisioning/datasources
           resources:
             requests: { cpu: "50m", memory: "128Mi" }
             limits:   { cpu: "500m", memory: "512Mi" }
+      volumes:
+        - name: datasources
+          configMap: { name: grafana-datasources }
 ---
 apiVersion: v1
 kind: Service
