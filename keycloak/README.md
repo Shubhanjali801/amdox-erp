@@ -90,6 +90,22 @@ JWKS signature check → email→app-user mapping → RBAC.
 - **Unprovisioned users are rejected.** Keycloak can authenticate an identity the
   ERP has never seen; such a login is denied (no app user → no access) rather
   than auto-provisioned, so tenant isolation is preserved.
-- **Frontend button is the remaining piece.** The backend accepts Keycloak
-  tokens now; a "Sign in with SSO" button (OIDC Authorization-Code + PKCE via
-  `keycloak-js`) is the next increment to make it user-facing.
+
+## Frontend "Sign in with SSO" button
+
+The login page renders a **Sign in with SSO** button when the frontend is built
+with `VITE_KEYCLOAK_SSO=true` (the `deploy-k3s.sh` frontend build passes this
+automatically when `KEYCLOAK_ENABLED=true`). Flow:
+
+1. Button click → redirect to Keycloak (Authorization Code + **PKCE** via
+   `keycloak-js`).
+2. Back at `/login`, the adapter exchanges the code for tokens
+   (`src/services/keycloak.ts`).
+3. The access token is stored where the axios interceptor already looks, and
+   `/auth/me` hydrates the app user (tenant/roles/permissions) — identical to a
+   local login from there on.
+4. `keycloak-js` refreshes the token in the background; logout ends the Keycloak
+   session too (`useAuth` is SSO-aware).
+
+Everything is gated by `FEATURES.KEYCLOAK_SSO`, so with the flag off the button
+is hidden and the classic email/password login is untouched.

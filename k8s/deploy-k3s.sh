@@ -42,7 +42,12 @@ echo "▶ [1/7] Building images (this takes a few minutes; the ML image is large
 docker build -t "amdox-backend:$TAG"  "$ROOT/backend"
 docker build -t "amdox-ml:$TAG"       "$ROOT/ml-service"
 # Frontend calls a RELATIVE API path; Traefik ingress routes /api → backend.
+# Keycloak SSO button is baked in only when KEYCLOAK_ENABLED=true.
 docker build --build-arg VITE_API_BASE_URL=/api/v1 \
+             --build-arg VITE_KEYCLOAK_SSO="${KEYCLOAK_ENABLED:-false}" \
+             --build-arg VITE_KEYCLOAK_URL="https://$DOMAIN/keycloak" \
+             --build-arg VITE_KEYCLOAK_REALM=amdox-erp \
+             --build-arg VITE_KEYCLOAK_CLIENT_ID=amdox-frontend \
              -t "amdox-frontend:$TAG" "$ROOT/frontend"
 
 echo "▶ [2/7] Importing images into k3s containerd…"

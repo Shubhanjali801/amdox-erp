@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { isSsoSession, keycloakLogout } from '../services/keycloak';
 
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -9,6 +10,12 @@ export const useAuth = () => {
   const user = authService.getCurrentUser();
 
   const logout = useCallback(async () => {
+    // SSO sessions must also be ended at Keycloak (this redirects to Keycloak
+    // and back to /login); local sessions use the classic logout.
+    if (isSsoSession()) {
+      await keycloakLogout();
+      return;
+    }
     await authService.logout();
     navigate('/');
   }, [navigate]);

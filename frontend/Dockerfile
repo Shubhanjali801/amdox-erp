@@ -18,6 +18,17 @@ COPY . .
 ARG VITE_API_BASE_URL=http://localhost:5000/api/v1
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
+# Keycloak SSO — baked in at build time. Off by default; set VITE_KEYCLOAK_SSO=true
+# (and the URL/realm/client) to render the "Sign in with SSO" button.
+ARG VITE_KEYCLOAK_SSO=false
+ARG VITE_KEYCLOAK_URL=https://localhost/keycloak
+ARG VITE_KEYCLOAK_REALM=amdox-erp
+ARG VITE_KEYCLOAK_CLIENT_ID=amdox-frontend
+ENV VITE_KEYCLOAK_SSO=$VITE_KEYCLOAK_SSO \
+    VITE_KEYCLOAK_URL=$VITE_KEYCLOAK_URL \
+    VITE_KEYCLOAK_REALM=$VITE_KEYCLOAK_REALM \
+    VITE_KEYCLOAK_CLIENT_ID=$VITE_KEYCLOAK_CLIENT_ID
+
 # Build with Vite directly (skips the `tsc &&` type-check step, which is
 # advisory during WIP). Vite transpiles without failing on type errors.
 RUN npx vite build

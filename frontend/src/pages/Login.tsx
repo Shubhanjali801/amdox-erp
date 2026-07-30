@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -7,6 +7,8 @@ import toast from 'react-hot-toast'
 import { authService } from '../services/authService'
 import { firstAccessiblePath } from '../utils/permissions'
 import PublicNavbar from '../components/common/PublicNavbar'
+import { FEATURES } from '../config/featureFlags'
+import { initKeycloak, keycloakLogin, completeSsoSession } from '../services/keycloak'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,6 +25,27 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false)
   const [mfaStep, setMfaStep] = useState(false)
   const [mfaToken, setMfaToken] = useState('')
+  const [ssoLoading, setSsoLoading] = useState(false)
+
+  // On mount, finish a Keycloak redirect if we're coming back from SSO: the
+  // adapter processes the auth code, then we hydrate the app user from /auth/me.
+  useEffect(() => {
+    if (!FEATURES.KEYCLOAK_SSO) return
+    let active = true
+    initKeycloak().then(async (authenticated) => {
+      if (!authenticated || !active) return
+      setSsoLoading(true)
+      try {
+        await completeSsoSession()
+        toast.success('Signed in with SSO')
+        navigate(firstAccessiblePath())
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message || 'This SSO account is not provisioned in Amdox ERP')
+        if (active) setSsoLoading(false)
+      }
+    })
+    return () => { active = false }
+  }, [navigate])
   const { register, handleSubmit, getValues, formState: { errors } } = useForm<LoginData>({
     resolver: zodResolver(schema),
     defaultValues: { email: 'admin@amdox.com', password: '' },
@@ -72,6 +95,10 @@ export default function Login() {
             <CardDescription>Sign in to your account</CardDescription>
           </CardHeader>
           <CardContent>
+            {ssoLoading ? (
+              <div className="py-10 text-center text-sm text-muted-foreground">Signing you in via SSO…</div>
+            ) : (
+            <>
             {mfaStep ? (
               <div className="space-y-4">
                 <div className="text-center text-3xl">🔐</div>
@@ -129,6 +156,28 @@ export default function Login() {
               </form>
             )}
 
+            {!mfaStep && FEATURES.KEYCLOAK_SSO && (
+              <div className="mt-4">
+                <div className="relative mb-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-background px-2 text-muted-foreground">or</span>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={keycloakLogin}
+                  disabled={submitting}
+                >
+                  Sign in with SSO
+                </Button>
+              </div>
+            )}
+
             <p className="text-center text-xs text-muted-foreground mt-6">
               New company?{' '}
               <Button
@@ -139,6 +188,8 @@ export default function Login() {
                 Register here
               </Button>
             </p>
+            </>
+            )}
           </CardContent>
         </Card>
       </div>
