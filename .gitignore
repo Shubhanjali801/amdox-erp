@@ -3,7 +3,7 @@ node_modules/
 .pnp
 .pnp.js
 
-
+.claude
 shell.sh
 # Environment files
 .env

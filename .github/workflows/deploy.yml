@@ -1,5 +1,9 @@
-name: Deploy — Production
+name: Prod — Smoke Test
 
+# Continuous delivery is handled by ArgoCD (see argocd/) — the cluster syncs the
+# Helm chart from git automatically, so there is no imperative "deploy" step here
+# anymore. This workflow just verifies production is healthy: run it by hand after
+# a release, or it fires automatically on a v*.*.* tag.
 on:
   push:
     tags:
@@ -7,39 +11,22 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Deploy to Production
+  smoke-test:
+    name: Production smoke test
     runs-on: ubuntu-latest
-    environment: production
-
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.PROD_SERVER_HOST }}
-          username: ${{ secrets.PROD_SERVER_USER }}
-          key: ${{ secrets.PROD_SSH_KEY }}
-          script: |
-            cd /opt/amdox-erp
-            git pull origin main
-            docker-compose -f docker-compose.prod.yml pull
-            docker-compose -f docker-compose.prod.yml up -d --no-build
-            docker-compose -f docker-compose.prod.yml exec backend npm run migrate
-            echo "Deployment complete"
-
-      - name: Smoke test
+      - name: Liveness + readiness probes
         run: |
-          sleep 30
-          curl -f ${{ secrets.PROD_URL }}/api/v1/health/live || exit 1
-          echo "Smoke test passed"
+          BASE="${{ secrets.PROD_URL }}"
+          echo "Probing $BASE …"
+          curl -fsS "$BASE/api/v1/health/live"  && echo "  ✓ live"
+          curl -fsS "$BASE/api/v1/health/ready" && echo "  ✓ ready"
 
       - name: Notify Slack
         if: always()
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          text: "Deployment to production ${{ job.status }}"
+          text: "Production smoke test ${{ job.status }}"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
