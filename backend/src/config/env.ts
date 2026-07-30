@@ -23,8 +23,15 @@ export const ENV = {
   JWT_REFRESH_SECRET:    process.env.JWT_REFRESH_SECRET    || 'dev_refresh_secret_change_in_production',
   JWT_REFRESH_EXPIRES_IN:process.env.JWT_REFRESH_EXPIRES_IN|| '7d',
 
-  // ── Keycloak ──────────────────────────────────────────
+  // ── Keycloak (SSO / OIDC) ─────────────────────────────
+  // Feature-flagged: when false (default) the backend behaves exactly as before
+  // and only accepts local HS256 JWTs. When true it ALSO accepts Keycloak-issued
+  // RS256 tokens (verified via JWKS) and maps them to the app user by email.
+  KEYCLOAK_ENABLED:   (process.env.KEYCLOAK_ENABLED || 'false') === 'true',
   KEYCLOAK_URL:       process.env.KEYCLOAK_URL       || 'http://localhost:8080',
+  // Public issuer as it appears in the token's `iss` claim (browser-facing URL).
+  // Falls back to KEYCLOAK_URL for local single-host setups.
+  KEYCLOAK_ISSUER:    process.env.KEYCLOAK_ISSUER    || '',
   KEYCLOAK_REALM:     process.env.KEYCLOAK_REALM     || 'amdox-erp',
   KEYCLOAK_CLIENT_ID: process.env.KEYCLOAK_CLIENT_ID || 'amdox-backend',
   KEYCLOAK_SECRET:    process.env.KEYCLOAK_SECRET    || '',

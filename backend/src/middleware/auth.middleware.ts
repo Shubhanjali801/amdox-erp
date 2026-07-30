@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { ENV } from '../config/env';
+import { authenticateKeycloak } from '../services/auth/keycloakService';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -26,7 +27,19 @@ export const authenticate = async (
   }
 
   try {
-    const token   = header.slice(7);
+    const token = header.slice(7);
+
+    // When SSO is on, a Keycloak access token (RS256) is verified against the
+    // realm JWKS and mapped to the local app user; local HS256 tokens still work
+    // exactly as before. The token's `alg` header tells the two apart, so there
+    // is zero behaviour change when KEYCLOAK_ENABLED is false.
+    const alg = jwt.decode(token, { complete: true })?.header?.alg;
+    if (ENV.KEYCLOAK_ENABLED && alg === 'RS256') {
+      const identity = await authenticateKeycloak(token);
+      req.user = { ...identity, id: identity.userId };
+      return next();
+    }
+
     const payload = jwt.verify(token, ENV.JWT_SECRET) as any;
 
     req.user = {

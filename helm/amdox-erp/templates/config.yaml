@@ -19,6 +19,11 @@ data:
   OTEL_TRACES_ENABLED: {{ .Values.config.OTEL_TRACES_ENABLED | default "false" | quote }}
   OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.config.OTEL_EXPORTER_OTLP_ENDPOINT | default "http://tempo:4318" | quote }}
   OTEL_SERVICE_NAME: {{ .Values.config.OTEL_SERVICE_NAME | default "amdox-backend" | quote }}
+  KEYCLOAK_ENABLED: {{ .Values.config.KEYCLOAK_ENABLED | default "false" | quote }}
+  KEYCLOAK_URL: {{ .Values.config.KEYCLOAK_URL | default "http://keycloak:8080/keycloak" | quote }}
+  KEYCLOAK_ISSUER: {{ .Values.config.KEYCLOAK_ISSUER | default (printf "https://%s/keycloak/realms/amdox-erp" .Values.domain) | quote }}
+  KEYCLOAK_REALM: {{ .Values.config.KEYCLOAK_REALM | default "amdox-erp" | quote }}
+  KEYCLOAK_CLIENT_ID: {{ .Values.config.KEYCLOAK_CLIENT_ID | default "amdox-frontend" | quote }}
 {{- if .Values.secrets.managed }}
 ---
 # Rendered only when secrets.managed=true. For a GitOps flow (ArgoCD), set

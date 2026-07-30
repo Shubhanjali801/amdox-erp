@@ -60,6 +60,12 @@ config:
   OTEL_TRACES_ENABLED: "false"
   OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
   OTEL_SERVICE_NAME: amdox-backend
+  # Keycloak SSO — flip KEYCLOAK_ENABLED to "true" after applying
+  # k8s/12-keycloak.yaml. See keycloak/README.md.
+  KEYCLOAK_ENABLED: "false"
+  KEYCLOAK_URL: http://keycloak:8080/keycloak
+  KEYCLOAK_REALM: amdox-erp
+  KEYCLOAK_CLIENT_ID: amdox-frontend
 
 # Secrets — provide real values via --set or a private values file. NEVER commit.
 #   managed=true  → the chart renders the amdox-secrets Secret from the values below.

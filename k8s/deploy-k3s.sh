@@ -65,6 +65,11 @@ $KUBECTL -n amdox create configmap amdox-config \
   --from-literal=OTEL_TRACES_ENABLED="${OTEL_TRACES_ENABLED:-false}" \
   --from-literal=OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4318 \
   --from-literal=OTEL_SERVICE_NAME=amdox-backend \
+  --from-literal=KEYCLOAK_ENABLED="${KEYCLOAK_ENABLED:-false}" \
+  --from-literal=KEYCLOAK_URL=http://keycloak:8080/keycloak \
+  --from-literal=KEYCLOAK_ISSUER="https://$DOMAIN/keycloak/realms/amdox-erp" \
+  --from-literal=KEYCLOAK_REALM=amdox-erp \
+  --from-literal=KEYCLOAK_CLIENT_ID=amdox-frontend \
   --dry-run=client -o yaml | $KUBECTL apply -f -
 
 $KUBECTL -n amdox create secret generic amdox-secrets \

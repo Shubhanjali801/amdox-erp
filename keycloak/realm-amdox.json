@@ -1,0 +1,62 @@
+{
+  "realm": "amdox-erp",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "roles": {
+    "realm": [
+      { "name": "tenant_admin", "description": "Amdox tenant administrator" },
+      { "name": "manager", "description": "Department manager" },
+      { "name": "viewer", "description": "Read-only user" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "amdox-frontend",
+      "name": "Amdox ERP Frontend (SPA)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "https://13.127.204.51.nip.io/*",
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": ["+"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "https://13.127.204.51.nip.io/*##http://localhost:3000/*"
+      }
+    },
+    {
+      "clientId": "amdox-backend",
+      "name": "Amdox ERP Backend (resource server)",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "secret": "CHANGE_ME_backend_client_secret"
+    }
+  ],
+  "users": [
+    {
+      "username": "admin@amdox.com",
+      "email": "admin@amdox.com",
+      "firstName": "Super",
+      "lastName": "Admin",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "Admin@1234", "temporary": false }
+      ],
+      "realmRoles": ["tenant_admin"]
+    }
+  ]
+}

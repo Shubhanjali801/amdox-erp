@@ -1,0 +1,98 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Keycloak — SSO / OIDC identity provider (OPT-IN).
+#
+# Runs in dev mode (embedded H2 DB) with the amdox-erp realm auto-imported, so no
+# extra Postgres is needed for a demo. Served under https://<domain>/keycloak via
+# the existing Traefik ingress; the backend reaches it in-cluster at
+# http://keycloak:8080/keycloak.
+#
+# The backend only *accepts* Keycloak tokens when KEYCLOAK_ENABLED=true (set in
+# deploy.env) — so applying this manifest alone changes nothing until you flip
+# that flag and redeploy the backend.
+#
+# Apply order (the realm ConfigMap is built from the committed realm file so the
+# two never drift):
+#   kubectl -n amdox create configmap keycloak-realm \
+#     --from-file=realm-amdox.json=keycloak/realm-amdox.json \
+#     --dry-run=client -o yaml | kubectl apply -f -
+#   kubectl apply -f k8s/12-keycloak.yaml
+#
+# RAM note: Keycloak wants ~512Mi–1Gi. On the single 8GB node, scale ml-service
+# to 0 while demoing SSO:  kubectl -n amdox scale deploy/ml-service --replicas=0
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: amdox
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: keycloak }
+  template:
+    metadata:
+      labels: { app: keycloak }
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.0
+          args: ["start-dev", "--import-realm"]
+          env:
+            - { name: KEYCLOAK_ADMIN, value: "admin" }
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: amdox-secrets, key: POSTGRES_PASSWORD }
+            # Served under /keycloak behind the TLS-terminating Traefik ingress.
+            - { name: KC_HTTP_RELATIVE_PATH, value: "/keycloak" }
+            - { name: KC_HTTP_ENABLED, value: "true" }
+            - { name: KC_PROXY_HEADERS, value: "xforwarded" }
+            - { name: KC_HOSTNAME, value: "https://13.127.204.51.nip.io/keycloak" }
+            - { name: KC_HOSTNAME_STRICT, value: "false" }
+            - { name: KC_HEALTH_ENABLED, value: "true" }
+          ports:
+            - { containerPort: 8080, name: http }
+          readinessProbe:
+            httpGet: { path: /keycloak/health/ready, port: 8080 }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+          volumeMounts:
+            - { name: realm, mountPath: /opt/keycloak/data/import, readOnly: true }
+          resources:
+            requests: { cpu: "250m", memory: "512Mi" }
+            limits:   { cpu: "1",    memory: "1Gi" }
+      volumes:
+        - name: realm
+          configMap: { name: keycloak-realm }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: amdox
+spec:
+  selector: { app: keycloak }
+  ports:
+    - { port: 8080, targetPort: 8080 }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: keycloak
+  namespace: amdox
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  tls:
+    - hosts: ["13.127.204.51.nip.io"]
+      secretName: amdox-tls
+  rules:
+    - host: 13.127.204.51.nip.io
+      http:
+        paths:
+          - path: /keycloak
+            pathType: Prefix
+            backend:
+              service:
+                name: keycloak
+                port: { number: 8080 }
