@@ -9,9 +9,10 @@ from datetime import datetime
 from app.schemas.forecast import (
     ForecastRequest, ForecastResponse,
     TrainRequest, TrainResponse,
-    ForecastPoint,
+    ForecastPoint, ReorderRecommendation,
 )
 from app.services.forecast_service import forecast_service
+from app.services import forecast_engine
 from app.config import settings
 
 router = APIRouter()
@@ -42,34 +43,32 @@ async def predict(
             for p in body.historical_data
         ]
 
-        result = forecast_service.forecast(
-            tenant_id         = body.tenant_id,
-            inventory_item_id = body.inventory_item_id,
-            historical_data   = historical,
-            model_type        = body.model_type.value,
+        # Honest engine: auto-selects the best model per item, returns backtested
+        # accuracy + confidence bands + a reorder recommendation.
+        result = forecast_engine.forecast(
+            historical        = historical,
             horizon           = body.forecast_horizon,
+            model_type        = body.model_type.value,
+            lead_time_periods = body.lead_time_periods,
+            current_stock     = body.current_stock,
         )
 
-        forecasts = [
-            ForecastPoint(
-                period          = f["period"],
-                predicted_qty   = f["predicted_qty"],
-                confidence_low  = f["confidence_low"],
-                confidence_high = f["confidence_high"],
-            )
-            for f in result["forecasts"]
-        ]
+        forecasts = [ForecastPoint(**f) for f in result["forecasts"]]
 
         return ForecastResponse(
-            tenant_id         = body.tenant_id,
-            inventory_item_id = body.inventory_item_id,
-            model_used        = result["model_used"],
-            model_version     = result["model_version"],
-            forecast_horizon  = body.forecast_horizon,
-            mape              = result.get("mape"),
-            mae               = result.get("mae"),
-            forecasts         = forecasts,
-            generated_at      = datetime.utcnow(),
+            tenant_id          = body.tenant_id,
+            inventory_item_id  = body.inventory_item_id,
+            model_used         = result["model_used"],
+            model_version      = result["model_version"],
+            forecast_horizon   = body.forecast_horizon,
+            backtest_smape     = result.get("backtest_smape"),
+            skill_vs_naive_pct = result.get("skill_vs_naive_pct"),
+            candidates_tried   = result.get("candidates_tried"),
+            history_points     = result.get("history_points"),
+            mape               = result.get("backtest_smape"),   # backward-compat
+            forecasts          = forecasts,
+            reorder            = ReorderRecommendation(**result["reorder"]),
+            generated_at       = datetime.utcnow(),
         )
 
     except ValueError as e:

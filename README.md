@@ -38,7 +38,7 @@ Amdox ERP consolidates fragmented enterprise workflows into one platform. Every 
 | REST endpoints | **~120** |
 | Backend source files | **216** |
 | Frontend source files | **115** |
-| ML forecast accuracy | **12.84% MAPE** (LSTM) |
+| ML forecast accuracy | **~49% sMAPE** on real retail data (backtested, beats naive) — see [`ml-service/benchmark`](./ml-service/benchmark) |
 
 ---
 
@@ -67,12 +67,17 @@ Live KPI cards computed from real data, charts (Recharts), configurable widgets,
 - **Hash-chained audit log** — tamper-evident (F-09)
 - Password reset via email, bcrypt hashing, Zod validation
 
-### 🤖 AI / ML
-Demand forecasting microservice (Python FastAPI):
-- **LSTM** (PyTorch) — **12.84% MAPE**
-- **Prophet** (Meta) — captures trend + seasonality, validated with a holdout back-test
+### 🤖 AI / ML — demand forecasting (Python FastAPI)
+An **honest, self-selecting** forecaster (not a black box):
+- **Auto-selects the best model per product** (Simple Exponential Smoothing / moving-average / Prophet / naive) via **rolling-origin backtest** — and only uses a model if it actually **beats the naive baseline**.
+- Reports **honest backtested accuracy** (sMAPE) + confidence intervals — no in-sample vanity metrics.
+- Turns the forecast into a **reorder recommendation** (reorder point, safety stock, order qty) — the thing a user acts on.
 
-> Demo it on inventory item **`FORECAST-DEMO-001`** (seeded with 18 months of sales history).
+**Validated on a real public dataset** — UCI Online Retail (~500k real UK e-commerce transactions). Benchmark (`ml-service/benchmark`) uses walk-forward validation vs a naive baseline across 50 real products.
+
+> **Honest finding:** on real short-history per-item demand, simple statistical models (SES) beat LSTM/Prophet — using the right model for the data size is the point. LSTM is retained but not the default.
+
+> Demo it on inventory item **`FORECAST-DEMO-001`** (seeded with 18 months of history).
 
 ---
 

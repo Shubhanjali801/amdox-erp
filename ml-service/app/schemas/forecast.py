@@ -22,9 +22,11 @@ class ForecastRequest(BaseModel):
     """Request body for forecast endpoint"""
     tenant_id: str              = Field(..., example="uuid-tenant-123")
     inventory_item_id: str      = Field(..., example="uuid-item-456")
-    historical_data: List[SalesDataPoint] = Field(..., min_length=6)
+    historical_data: List[SalesDataPoint] = Field(..., min_length=4)
     model_type: ModelType       = Field(default=ModelType.AUTO)
-    forecast_horizon: int       = Field(default=6, ge=1, le=24, description="Months ahead")
+    forecast_horizon: int       = Field(default=6, ge=1, le=24, description="Periods ahead")
+    lead_time_periods: int      = Field(default=1, ge=1, le=12, description="Supplier lead time (periods) for reorder calc")
+    current_stock: Optional[float] = Field(default=None, ge=0, description="Current on-hand stock (for reorder yes/no)")
 
     class Config:
         protected_namespaces = ()
@@ -72,18 +74,35 @@ class ForecastPoint(BaseModel):
     confidence_high: float
 
 
+class ReorderRecommendation(BaseModel):
+    lead_time_periods: int
+    expected_demand_over_lead: float
+    safety_stock: float
+    reorder_point: float
+    suggested_order_qty: float
+    current_stock: Optional[float] = None
+    should_reorder: Optional[bool] = None
+
+
 class ForecastResponse(BaseModel):
     """Full forecast response"""
     model_config = {"protected_namespaces": ()}
 
     tenant_id: str
     inventory_item_id: str
-    model_used: str
+    model_used: str                              # auto-selected best model for THIS item
     model_version: str
     forecast_horizon: int
-    mape: Optional[float]     = None  # Mean Absolute % Error
-    mae: Optional[float]      = None  # Mean Absolute Error
+    # Honest, backtested accuracy (rolling-origin) — NOT an in-sample number:
+    backtest_smape: Optional[float]  = None      # symmetric MAPE, %
+    skill_vs_naive_pct: Optional[float] = None   # >0 means it beats the naive baseline
+    candidates_tried: Optional[dict] = None      # {model: sMAPE} that were compared
+    history_points: Optional[int]    = None
+    # kept for backward compatibility (mirrors backtest_smape):
+    mape: Optional[float]     = None
+    mae: Optional[float]      = None
     forecasts: List[ForecastPoint]
+    reorder: Optional[ReorderRecommendation] = None
     generated_at: datetime    = Field(default_factory=datetime.utcnow)
 
 

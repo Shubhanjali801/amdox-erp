@@ -1,0 +1,4 @@
+# don't commit the large downloaded dataset (23MB) or generated results
+*.xlsx
+*.csv
+results.json

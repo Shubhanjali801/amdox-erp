@@ -18,6 +18,8 @@ export interface MlForecastRequest {
   historical_data: SalesDataPoint[];
   model_type?: 'auto' | 'lstm' | 'prophet';
   forecast_horizon?: number;
+  lead_time_periods?: number;
+  current_stock?: number | null;
 }
 
 export interface MlForecastPoint {
@@ -27,15 +29,30 @@ export interface MlForecastPoint {
   confidence_high: number;
 }
 
+export interface MlReorder {
+  lead_time_periods: number;
+  expected_demand_over_lead: number;
+  safety_stock: number;
+  reorder_point: number;
+  suggested_order_qty: number;
+  current_stock?: number | null;
+  should_reorder?: boolean | null;
+}
+
 export interface MlForecastResponse {
   tenant_id: string;
   inventory_item_id: string;
   model_used: string;
   model_version: string;
   forecast_horizon: number;
+  backtest_smape?: number | null;
+  skill_vs_naive_pct?: number | null;
+  candidates_tried?: Record<string, number | null>;
+  history_points?: number;
   mape: number | null;
   mae: number | null;
   forecasts: MlForecastPoint[];
+  reorder?: MlReorder;
   generated_at: string;
 }
 

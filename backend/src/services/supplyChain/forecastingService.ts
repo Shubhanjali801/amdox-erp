@@ -8,10 +8,11 @@ import { logger } from '../../utils/logger';
 import { mlService, SalesDataPoint } from '../external/mlService';
 
 export interface GenerateForecastInput {
-  tenantId:        string;
-  inventoryItemId: string;
-  modelType?:      'auto' | 'lstm' | 'prophet';
-  horizon?:        number;
+  tenantId:         string;
+  inventoryItemId:  string;
+  modelType?:       'auto' | 'lstm' | 'prophet';
+  horizon?:         number;
+  leadTimePeriods?: number;
 }
 
 export const forecastingService = {
@@ -63,6 +64,12 @@ export const forecastingService = {
     const history = await this.buildHistory(tenantId, inventoryItemId);
     if (history.length < 6) throw new Error('INSUFFICIENT_HISTORY');
 
+    // Current on-hand stock, so the ML service can give a reorder yes/no.
+    const item = await prisma.inventoryItem.findFirst({
+      where: { id: inventoryItemId, tenantId },
+      select: { quantityOnHand: true },
+    });
+
     // Call the Python ML service
     const result = await mlService.predict({
       tenant_id:         tenantId,
@@ -70,6 +77,8 @@ export const forecastingService = {
       historical_data:   history,
       model_type:        modelType,
       forecast_horizon:  horizon,
+      lead_time_periods: input.leadTimePeriods ?? 1,
+      current_stock:     item ? Number(item.quantityOnHand) : null,
     });
 
     // Persist each forecast point
@@ -93,16 +102,18 @@ export const forecastingService = {
     );
 
     logger.info(
-      `Forecast generated for item ${inventoryItemId} using ${result.model_used} (MAPE ${result.mape})`
+      `Forecast for item ${inventoryItemId}: ${result.model_used}, sMAPE ${result.backtest_smape}, beats naive ${result.skill_vs_naive_pct}%`
     );
 
     return {
-      model_used:     result.model_used,
-      model_version:  result.model_version,
-      mape:           result.mape,
-      mae:            result.mae,
-      history_points: history.length,
-      forecasts:      saved,
+      model_used:         result.model_used,
+      model_version:      result.model_version,
+      backtest_smape:     result.backtest_smape,
+      skill_vs_naive_pct: result.skill_vs_naive_pct,
+      candidates_tried:   result.candidates_tried,
+      history_points:     result.history_points ?? history.length,
+      forecasts:          saved,
+      reorder:            result.reorder,
     };
   },
 };
