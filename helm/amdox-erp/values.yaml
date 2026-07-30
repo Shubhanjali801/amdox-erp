@@ -1,0 +1,65 @@
+# ── Amdox ERP Helm values ────────────────────────────────────────────────────
+# Override per-environment:  helm install amdox ./helm/amdox-erp -f my-values.yaml
+
+namespace: amdox
+
+# Public domain + TLS
+domain: 13.127.204.51.nip.io
+letsencryptEmail: shubhanjali32@gmail.com
+tls:
+  enabled: true
+  clusterIssuer: letsencrypt-prod
+
+# Images (built on-node + imported into k3s; override tag with the git SHA)
+images:
+  backend:  { repo: amdox-backend,  tag: latest, pullPolicy: IfNotPresent }
+  frontend: { repo: amdox-frontend, tag: latest, pullPolicy: IfNotPresent }
+  ml:       { repo: amdox-ml,       tag: latest, pullPolicy: IfNotPresent }
+
+backend:
+  replicas: 2
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { cpu: "1",  memory: 512Mi }
+
+frontend:
+  replicas: 2
+  resources:
+    requests: { cpu: 50m,  memory: 64Mi }
+    limits:   { cpu: 500m, memory: 256Mi }
+
+ml:
+  enabled: true
+  replicas: 1
+  resources:
+    requests: { cpu: 250m, memory: 1Gi }
+    limits:   { cpu: "2",  memory: 2Gi }
+
+postgres:
+  storage: 5Gi
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { cpu: "1",  memory: 1Gi }
+
+redis: {}
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+# Non-secret config (goes into the ConfigMap)
+config:
+  NODE_ENV: production
+  PORT: "5000"
+  ML_SERVICE_URL: http://ml-service:8000
+  ML_SERVICE_API_KEY: dev_ml_api_key_change_in_prod
+
+# Secrets — provide real values via --set or a private values file. NEVER commit.
+secrets:
+  DB_PASSWORD: change_me
+  JWT_SECRET: change_me
+  JWT_REFRESH_SECRET: change_me
+  GMAIL_USER: ""
+  GMAIL_APP_PASSWORD: ""

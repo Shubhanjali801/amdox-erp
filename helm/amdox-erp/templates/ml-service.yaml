@@ -1,0 +1,41 @@
+{{- if .Values.ml.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-service
+  namespace: {{ .Values.namespace }}
+spec:
+  selector: { app: ml-service }
+  ports:
+    - port: 8000
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-service
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.ml.replicas }}
+  selector:
+    matchLabels: { app: ml-service }
+  template:
+    metadata:
+      labels: { app: ml-service }
+    spec:
+      containers:
+        - name: ml-service
+          image: "{{ .Values.images.ml.repo }}:{{ .Values.images.ml.tag }}"
+          imagePullPolicy: {{ .Values.images.ml.pullPolicy }}
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              value: {{ include "amdox.databaseUrl" . | quote }}
+          readinessProbe:
+            httpGet: { path: /health, port: 8000 }
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            {{- toYaml .Values.ml.resources | nindent 12 }}
+{{- end }}

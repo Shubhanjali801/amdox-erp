@@ -1,0 +1,50 @@
+{{- if .Values.tls.enabled }}
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .Values.tls.clusterIssuer }}
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: {{ .Values.letsencryptEmail }}
+    privateKeySecretRef:
+      name: {{ .Values.tls.clusterIssuer }}
+    solvers:
+      - http01:
+          ingress:
+            class: traefik
+---
+{{- end }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: amdox-ingress
+  namespace: {{ .Values.namespace }}
+  annotations:
+    {{- if .Values.tls.enabled }}
+    cert-manager.io/cluster-issuer: {{ .Values.tls.clusterIssuer | quote }}
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    {{- end }}
+spec:
+  ingressClassName: traefik
+  {{- if .Values.tls.enabled }}
+  tls:
+    - hosts: ["{{ .Values.domain }}"]
+      secretName: amdox-tls
+  {{- end }}
+  rules:
+    - host: {{ .Values.domain }}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port: { number: 5000 }
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port: { number: 80 }
