@@ -1,15 +1,21 @@
-import { Queue, Worker, Job } from 'bullmq';
-import { redisClient } from '../config/redis';
+import { Job, Queue, Worker } from 'bullmq';
 
-// Scheduled report generation — M6
-const QUEUE_NAME = 'reportGeneration';
+const QUEUE_NAME = 'report-generation';
+const connection = {
+  host: process.env.REDIS_HOST || 'localhost',
+  port: Number(process.env.REDIS_PORT || 6379),
+  password: process.env.REDIS_PASSWORD || undefined,
+};
 
-export const reportGenerationJobQueue = new Queue(QUEUE_NAME, { connection: redisClient });
+export const reportGenerationJobQueue = new Queue(QUEUE_NAME, { connection });
 
-export const reportGenerationJobWorker = new Worker(QUEUE_NAME, async (job: Job) => {
-  console.log([] Processing job:, job.id, job.data);
-  // TODO: implement job logic
-}, { connection: redisClient });
+export const reportGenerationJobWorker = new Worker(
+  QUEUE_NAME,
+  async (job: Job) => {
+    console.log('Processing report generation job:', job.id, job.data);
+  },
+  { connection }
+);
 
-reportGenerationJobWorker.on('completed', job  => console.log([] Done:, job.id));
-reportGenerationJobWorker.on('failed',    (job, err) => console.error([] Failed:, job?.id, err.message));
+reportGenerationJobWorker.on('completed', job => console.log('Report generation job done:', job.id));
+reportGenerationJobWorker.on('failed', (job, err) => console.error('Report generation job failed:', job?.id, err.message));

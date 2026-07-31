@@ -1,15 +1,21 @@
-import { Queue, Worker, Job } from 'bullmq';
-import { redisClient } from '../config/redis';
+import { Job, Queue, Worker } from 'bullmq';
 
-// Stale data archival — M1
-const QUEUE_NAME = 'dataCleanup';
+const QUEUE_NAME = 'data-cleanup';
+const connection = {
+  host: process.env.REDIS_HOST || 'localhost',
+  port: Number(process.env.REDIS_PORT || 6379),
+  password: process.env.REDIS_PASSWORD || undefined,
+};
 
-export const dataCleanupJobQueue = new Queue(QUEUE_NAME, { connection: redisClient });
+export const dataCleanupJobQueue = new Queue(QUEUE_NAME, { connection });
 
-export const dataCleanupJobWorker = new Worker(QUEUE_NAME, async (job: Job) => {
-  console.log([] Processing job:, job.id, job.data);
-  // TODO: implement job logic
-}, { connection: redisClient });
+export const dataCleanupJobWorker = new Worker(
+  QUEUE_NAME,
+  async (job: Job) => {
+    console.log('Processing data cleanup job:', job.id, job.data);
+  },
+  { connection }
+);
 
-dataCleanupJobWorker.on('completed', job  => console.log([] Done:, job.id));
-dataCleanupJobWorker.on('failed',    (job, err) => console.error([] Failed:, job?.id, err.message));
+dataCleanupJobWorker.on('completed', job => console.log('Data cleanup job done:', job.id));
+dataCleanupJobWorker.on('failed', (job, err) => console.error('Data cleanup job failed:', job?.id, err.message));

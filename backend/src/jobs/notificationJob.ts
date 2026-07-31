@@ -1,15 +1,21 @@
-import { Queue, Worker, Job } from 'bullmq';
-import { redisClient } from '../config/redis';
+import { Job, Queue, Worker } from 'bullmq';
 
-// Push/SMS notification dispatch — M5
 const QUEUE_NAME = 'notification';
+const connection = {
+  host: process.env.REDIS_HOST || 'localhost',
+  port: Number(process.env.REDIS_PORT || 6379),
+  password: process.env.REDIS_PASSWORD || undefined,
+};
 
-export const notificationJobQueue = new Queue(QUEUE_NAME, { connection: redisClient });
+export const notificationJobQueue = new Queue(QUEUE_NAME, { connection });
 
-export const notificationJobWorker = new Worker(QUEUE_NAME, async (job: Job) => {
-  console.log([] Processing job:, job.id, job.data);
-  // TODO: implement job logic
-}, { connection: redisClient });
+export const notificationJobWorker = new Worker(
+  QUEUE_NAME,
+  async (job: Job) => {
+    console.log('Processing notification job:', job.id, job.data);
+  },
+  { connection }
+);
 
-notificationJobWorker.on('completed', job  => console.log([] Done:, job.id));
-notificationJobWorker.on('failed',    (job, err) => console.error([] Failed:, job?.id, err.message));
+notificationJobWorker.on('completed', job => console.log('Notification job done:', job.id));
+notificationJobWorker.on('failed', (job, err) => console.error('Notification job failed:', job?.id, err.message));

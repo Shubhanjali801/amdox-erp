@@ -423,7 +423,6 @@ model Employee {
   attendances     Attendance[]
   payslips        Payslip[]
   projectResources ProjectResource[]
-  taskAssignments ProjectTask[]    @relation("AssignedToUser")
 
   @@unique([tenantId, employeeCode])
   @@index([tenantId])
@@ -795,7 +794,6 @@ model ProjectTask {
   parentTask    ProjectTask? @relation("TaskHierarchy", fields: [parentTaskId], references: [id])
   subTasks      ProjectTask[] @relation("TaskHierarchy")
   assignee      User?        @relation("AssignedToUser", fields: [assignedTo], references: [id])
-  employeeAssignee Employee? @relation("AssignedToUser", fields: [assignedTo], references: [id])
 
   @@index([projectId])
   @@map("project_tasks")

@@ -14,12 +14,14 @@
     "build": "npm run build --workspaces",
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces",
+    "smoke:hr": "powershell -ExecutionPolicy Bypass -File scripts/hr-runtime-smoke.ps1",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "jsdom": "^29.1.1"
   },
   "engines": {
     "node": ">=20.0.0",

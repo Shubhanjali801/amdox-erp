@@ -1,13 +1,13 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, type NavLinkRenderProps } from 'react-router-dom';
 
 const links = [
-  { to: '/',                label: '📊 Dashboard' },
-  { to: '/finance/ledger',  label: '💰 Finance' },
-  { to: '/hr/employees',    label: '👥 HR' },
-  { to: '/supply/pos',      label: '📦 Supply Chain' },
-  { to: '/projects',        label: '📋 Projects' },
-  { to: '/settings',        label: '⚙️ Settings' },
+  { to: '/', label: 'Dashboard' },
+  { to: '/finance/ledger', label: 'Finance' },
+  { to: '/hr/employees', label: 'HR' },
+  { to: '/supply-chain/purchase-orders', label: 'Supply Chain' },
+  { to: '/projects', label: 'Projects' },
+  { to: '/settings', label: 'Settings' },
 ];
 
 const Sidebar: React.FC = () => (
@@ -16,13 +16,17 @@ const Sidebar: React.FC = () => (
       <span className="text-blue-400 font-bold text-xl">AMX ERP</span>
     </div>
     <nav className="flex-1 p-4 space-y-1">
-      {links.map(l => (
-        <NavLink key={l.to} to={l.to}
-          className={({ isActive }) =>
+      {links.map(link => (
+        <NavLink
+          key={link.to}
+          to={link.to}
+          className={({ isActive }: NavLinkRenderProps) =>
             `flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition-colors ${
               isActive ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-            }`}>
-          {l.label}
+            }`
+          }
+        >
+          {link.label}
         </NavLink>
       ))}
     </nav>

@@ -9,6 +9,15 @@ export const validate = (schema: Joi.ObjectSchema, target: 'body' | 'query' | 'p
       const details = error.details.map(d => d.message).join(', ');
       return next(new ValidationError(details));
     }
-    req[target] = value;
+    if (target === 'query') {
+      Object.defineProperty(req, 'query', {
+        value,
+        configurable: true,
+        enumerable: true,
+        writable: true,
+      });
+    } else {
+      req[target] = value;
+    }
     next();
   };

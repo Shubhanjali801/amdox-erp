@@ -19,6 +19,7 @@ const Employees     = lazy(() => import('./pages/HR/Employees'))
 const Payroll       = lazy(() => import('./pages/HR/Payroll'))
 const Leave         = lazy(() => import('./pages/HR/Leave'))
 const Attendance    = lazy(() => import('./pages/HR/Attendance'))
+const Organisation  = lazy(() => import('./pages/HR/Organisation'))
 
 // Projects (M4)
 const ProjectsList  = lazy(() => import('./pages/Projects/ProjectsList'))
@@ -60,6 +61,7 @@ export default function App() {
         <Route path="/hr/payroll"    element={<Payroll />} />
         <Route path="/hr/leave"      element={<Leave />} />
         <Route path="/hr/attendance" element={<Attendance />} />
+        <Route path="/hr/organisation" element={<Organisation />} />
 
         {/* Projects — M4 */}
         <Route path="/projects"         element={<ProjectsList />} />

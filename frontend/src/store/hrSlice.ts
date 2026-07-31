@@ -1,15 +1,18 @@
 import { create } from 'zustand';
+import { Employee } from '../types/hr';
 
-interface hrState {
-  data:    any[];
-  loading: boolean;
-  error:   string | null;
-  setData: (data: any[]) => void;
+interface HrState {
+  employees: Employee[];
+  selectedEmployee: Employee | null;
+  setEmployees: (employees: Employee[]) => void;
+  setSelectedEmployee: (employee: Employee | null) => void;
 }
 
-export const usehrStore = create<hrState>()(set => ({
-  data:    [],
-  loading: false,
-  error:   null,
-  setData: (data) => set({ data }),
+export const useHrStore = create<HrState>()(set => ({
+  employees: [],
+  selectedEmployee: null,
+  setEmployees: employees => set({ employees }),
+  setSelectedEmployee: employee => set({ selectedEmployee: employee }),
 }));
+
+export const usehrStore = useHrStore;

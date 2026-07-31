@@ -44,18 +44,21 @@ export async function seedFinance(prisma: PrismaClient, tenantId: string) {
   }
 
   // ── Accounting Period ──────────────────────────────────────
-  await prisma.accountingPeriod.upsert({
-    where: { id: 'seed-period-2026-04' },
-    update: {},
-    create: {
-      id: 'seed-period-2026-04',
-      tenantId,
-      name: 'April 2026',
-      startDate: new Date('2026-04-01'),
-      endDate: new Date('2026-04-30'),
-      status: 'OPEN',
-    },
+  const period = {
+    tenantId,
+    name: 'April 2026',
+    startDate: new Date('2026-04-01'),
+    endDate: new Date('2026-04-30'),
+    status: 'OPEN' as const,
+  }
+  const existingPeriod = await prisma.accountingPeriod.findFirst({
+    where: { tenantId, name: period.name, startDate: period.startDate, endDate: period.endDate },
   })
+  if (existingPeriod) {
+    await prisma.accountingPeriod.update({ where: { id: existingPeriod.id }, data: { status: period.status } })
+  } else {
+    await prisma.accountingPeriod.create({ data: period })
+  }
 
   // ── Currency Rates ─────────────────────────────────────────
   const today = new Date('2026-04-01')

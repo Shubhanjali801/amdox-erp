@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
+import path from 'path';
 
 dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 export const ENV = {
   // ── App ──────────────────────────────────────────────
@@ -8,6 +10,7 @@ export const ENV = {
   PORT:        parseInt(process.env.PORT || '5000'),
   CLIENT_URL:  process.env.CLIENT_URL  || 'http://localhost:3000',
   CORS_ORIGINS:process.env.CORS_ORIGINS || 'http://localhost:3000',
+  DEV_AUTH_BYPASS: process.env.DEV_AUTH_BYPASS === 'true',
 
   // ── Database (PostgreSQL 17 + Prisma) ────────────────
   DATABASE_URL: process.env.DATABASE_URL || 'postgresql://admin:admin123@localhost:5432/amdox_erp',
@@ -37,6 +40,7 @@ export const ENV = {
   AWS_SES_FROM_EMAIL:   process.env.AWS_SES_FROM_EMAIL   || 'noreply@amdox.com',
 
   // ── Email ─────────────────────────────────────────────
+  EMAIL_PROVIDER: process.env.EMAIL_PROVIDER || 'ses',
   EMAIL_FROM:    process.env.EMAIL_FROM    || 'Amdox ERP <noreply@amdox.com>',
   EMAIL_REPLY_TO:process.env.EMAIL_REPLY_TO|| 'support@amdox.com',
   SMTP_HOST:     process.env.SMTP_HOST     || 'smtp.gmail.com',
