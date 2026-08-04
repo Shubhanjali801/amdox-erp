@@ -53,9 +53,9 @@ kubectl -n argocd port-forward svc/argocd-server 8080:443
      --from-literal=GMAIL_APP_PASSWORD=""
    ```
 
-   > In a real cluster use **sealed-secrets** or **external-secrets** so even the
+`  > In a real cluster use **sealed-secrets** or **external-secrets** so even the
    > encrypted secret can live in git safely. Plain `kubectl create secret` is
-   > fine for the demo.
+   > fine for the demo.`
 
 3. Apply the Application and watch it sync:
 
