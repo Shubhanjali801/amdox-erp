@@ -74,6 +74,7 @@ Response&Request_collection.json
 k8s/deploy.env
 deploy.env
 startawsliveurl.md
-
+docs/Amdox_ERP_Presentation.pptx
 # Server-local deploy log written by k8s/deploy-k3s.sh
 k8s/.deploy-history
+docs/report

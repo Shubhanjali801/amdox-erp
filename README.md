@@ -16,7 +16,7 @@ Deployed on **AWS EC2** running **Kubernetes (k3s)** with **Let's Encrypt HTTPS*
 | Login | Password | What they can access |
 |---|---|---|
 | `admin@amdox.com` | `Admin@1234` | **Everything** — all modules + settings |
-| `finance@amdox.com` | `Finance@1234` | **Finance only** |
+| `financamdoxe@.com` | `Finance@1234` | **Finance only** |
 | `hr@amdox.com` | `HR@1234` | **HR & Payroll only** |
 | `supply@amdox.com` | `Supply@1234` | **Supply Chain only** |
 | `pm@amdox.com` | `PM@1234` | **Projects only** |

@@ -1,0 +1,48 @@
+name: Report — Build PDF
+
+# Compiles the LaTeX technical report to PDF whenever it changes, and uploads
+# the PDF as a downloadable build artifact. On a v*.*.* tag it also attaches the
+# PDF to the GitHub Release.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/report/**'
+      - '.github/workflows/report.yml'
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    paths:
+      - 'docs/report/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed to attach the PDF to a Release on tag builds
+
+jobs:
+  build-pdf:
+    name: Compile Amdox_ERP_Report.tex
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile LaTeX to PDF
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: Amdox_ERP_Report.tex
+          working_directory: docs/report
+          # latexmk runs pdflatex the needed number of times (TOC + longtables).
+          latexmk_use_xelatex: false
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Amdox_ERP_Report
+          path: docs/report/Amdox_ERP_Report.pdf
+          if-no-files-found: error
+
+      - name: Attach PDF to release (tag builds only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: docs/report/Amdox_ERP_Report.pdf
