@@ -114,6 +114,7 @@ export const forecastingService = {
       history_points:     result.history_points ?? history.length,
       forecasts:          saved,
       reorder:            result.reorder,
+      insight:            result.insight ?? null,
     };
   },
 };

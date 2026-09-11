@@ -53,6 +53,7 @@ export interface MlForecastResponse {
   mae: number | null;
   forecasts: MlForecastPoint[];
   reorder?: MlReorder;
+  insight?: string | null;          // optional AI plain-English recommendation
   generated_at: string;
 }
 
