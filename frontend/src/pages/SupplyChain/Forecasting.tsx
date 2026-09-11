@@ -9,7 +9,9 @@ const num = (v: any) => Number(v ?? 0)
 export default function Forecasting() {
   const itemsQ = useQuery({ queryKey: ['inventory'], queryFn: () => supplyChainService.listInventory() })
   const healthQ = useQuery({ queryKey: ['ml-health'], queryFn: () => supplyChainService.mlHealth(), retry: false })
-  const items = Array.isArray(itemsQ.data) ? itemsQ.data : (itemsQ.data?.data ?? [])
+  const allItems = Array.isArray(itemsQ.data) ? itemsQ.data : (itemsQ.data?.data ?? [])
+  // Only the seeded demo SKUs carry the 24-month sales history the forecaster needs.
+  const items = allItems.filter((i: any) => String(i?.sku ?? '').toUpperCase().startsWith('FORECAST-DEMO'))
 
   const [itemId, setItemId] = useState('')
   const [horizon, setHorizon] = useState(6)
