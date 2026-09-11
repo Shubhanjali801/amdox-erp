@@ -13,6 +13,7 @@ from app.schemas.forecast import (
 )
 from app.services.forecast_service import forecast_service
 from app.services import forecast_engine
+from app.services.insight import generate_insight
 from app.config import settings
 
 router = APIRouter()
@@ -55,6 +56,16 @@ async def predict(
 
         forecasts = [ForecastPoint(**f) for f in result["forecasts"]]
 
+        # Optional AI explanation (returns None if ANTHROPIC_API_KEY is unset).
+        insight = generate_insight(
+            model_used         = result["model_used"],
+            backtest_smape     = result.get("backtest_smape"),
+            skill_vs_naive_pct = result.get("skill_vs_naive_pct"),
+            history_points     = result.get("history_points"),
+            forecasts          = result["forecasts"],
+            reorder            = result.get("reorder"),
+        )
+
         return ForecastResponse(
             tenant_id          = body.tenant_id,
             inventory_item_id  = body.inventory_item_id,
@@ -68,6 +79,7 @@ async def predict(
             mape               = result.get("backtest_smape"),   # backward-compat
             forecasts          = forecasts,
             reorder            = ReorderRecommendation(**result["reorder"]),
+            insight            = insight,
             generated_at       = datetime.utcnow(),
         )
 

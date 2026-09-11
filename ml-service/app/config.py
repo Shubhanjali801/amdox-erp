@@ -22,6 +22,13 @@ class Settings(BaseSettings):
     FORECAST_HORIZON: int = 6      # months ahead to forecast
     PROPHET_SEASONALITY_MODE: str = "multiplicative"
 
+    # ─── AI insight (Claude) ──────────────────────────
+    # Optional natural-language explanation of each forecast. Turns the numbers
+    # into a plain-English reorder recommendation. Disabled automatically when
+    # ANTHROPIC_API_KEY is empty, so the forecast still works without it.
+    ANTHROPIC_API_KEY: str = ""
+    ANTHROPIC_MODEL: str = "claude-opus-5"
+
     class Config:
         env_file = ".env"
 

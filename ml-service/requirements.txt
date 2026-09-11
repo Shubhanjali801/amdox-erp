@@ -20,6 +20,9 @@ asyncpg==0.29.0
 sqlalchemy==2.0.30
 psycopg2-binary==2.9.9
 
+# ─── AI insight (optional Claude explanation of the forecast) ────
+anthropic==0.69.0
+
 # ─── Validation & Config ─────────────────────────────────
 pydantic==2.7.1
 pydantic-settings==2.3.0

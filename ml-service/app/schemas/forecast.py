@@ -103,6 +103,7 @@ class ForecastResponse(BaseModel):
     mae: Optional[float]      = None
     forecasts: List[ForecastPoint]
     reorder: Optional[ReorderRecommendation] = None
+    insight: Optional[str]    = None             # AI plain-English recommendation (optional)
     generated_at: datetime    = Field(default_factory=datetime.utcnow)
 
 
