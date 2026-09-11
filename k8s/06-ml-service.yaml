@@ -30,6 +30,20 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
+          env:
+            # Optional AI forecast insight (Claude). optional:true → the pod
+            # starts even without the secret; the ML service just omits insights.
+            # Create it with:
+            #   kubectl -n amdox create secret generic amdox-ml-ai \
+            #     --from-literal=ANTHROPIC_API_KEY='sk-ant-...'
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: amdox-ml-ai
+                  key: ANTHROPIC_API_KEY
+                  optional: true
+            - name: ANTHROPIC_MODEL
+              value: "claude-opus-5"
           readinessProbe:
             httpGet: { path: /health, port: 8000 }
             initialDelaySeconds: 30

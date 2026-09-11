@@ -32,6 +32,16 @@ spec:
           env:
             - name: DATABASE_URL
               value: {{ include "amdox.databaseUrl" . | quote }}
+            # Optional AI forecast insight (Claude). optional:true → pod starts
+            # without the secret; the ML service simply omits insights.
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: amdox-ml-ai
+                  key: ANTHROPIC_API_KEY
+                  optional: true
+            - name: ANTHROPIC_MODEL
+              value: {{ .Values.ml.anthropicModel | default "claude-opus-5" | quote }}
           readinessProbe:
             httpGet: { path: /health, port: 8000 }
             initialDelaySeconds: 30
