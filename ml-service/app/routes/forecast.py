@@ -11,10 +11,12 @@ from app.schemas.forecast import (
     TrainRequest, TrainResponse,
     ForecastPoint, ReorderRecommendation,
 )
-from app.services.forecast_service import forecast_service
 from app.services import forecast_engine
 from app.services.insight import generate_insight
 from app.config import settings
+# NOTE: forecast_service (LSTM/Prophet training) is imported lazily inside the
+# /train handler — it pulls in torch, which is heavy and unnecessary for the
+# /predict path, so the service can start with lightweight deps only.
 
 router = APIRouter()
 
@@ -100,6 +102,8 @@ async def train(
     body: TrainRequest,
     _: None = Depends(verify_api_key),
 ):
+    # Lazy import — pulls in torch/LSTM only when a train request is actually made.
+    from app.services.forecast_service import forecast_service
     try:
         historical = [
             {"date": str(p.date), "quantity": p.quantity}
